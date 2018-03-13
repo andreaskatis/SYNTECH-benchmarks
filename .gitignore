@@ -1,4 +1,5 @@
 #ignore the following
+*.lus~
 *.smt2
 *.c
 *.h
