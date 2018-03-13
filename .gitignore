@@ -1,0 +1,11 @@
+#ignore the following
+*.smt2
+*.c
+*.h
+*.o
+*.pdf
+kind/
+fixpoint/
+run_synthesis.py
+*.txt
+*.csv
