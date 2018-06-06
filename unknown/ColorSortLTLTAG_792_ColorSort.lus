@@ -30,11 +30,10 @@ let
   o = i -> true;
 tel;
 
-node ColorSort(color : env_color; detect : env_color; ack_ver : env_ack_hor; ack_hor : env_ack_hor; ack_bot : env_ack_hor; starting_pos : env_starting_pos; num_of_cubes : env_num_of_cubes; speedButton : env_speedButton; verMot : env_ack_hor; horMot : env_ack_hor; botMot : sys_botMot; motSpeed : sys_motSpeed; reduce_num_of_cubes : sys_reduce_num_of_cubes; spec_currentColor : env_color; spec_dropping, spec_speedButtonValidPressed, spec_waiting_ack_ver_mot, spec_waiting_ack_hor_mot : bool) returns ();
+node ColorSort(color : env_color; detect : env_color; ack_ver : env_ack_hor; ack_hor : env_ack_hor; ack_bot : env_ack_hor; starting_pos : env_starting_pos; num_of_cubes : env_num_of_cubes; speedButton : env_speedButton; verMot : env_ack_hor; horMot : env_ack_hor; botMot : sys_botMot; motSpeed : sys_motSpeed; reduce_num_of_cubes : sys_reduce_num_of_cubes; spec_currentColor : env_color; spec_dropping, spec_speedButtonValidPressed, spec_waiting_ack_ver_mot, spec_waiting_ack_hor_mot : bool; responded1, responded2, responded3, responded4 : bool) returns ();
 var
-  responded1, responded2, responded3 : bool;
-  counter_r1, counter_r2, counter_r3, counter_gf1, counter_gf2, counter_gf3, counter_gf4 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41 : bool;
+  counter_r1, counter_r2, counter_r3, counter_r4, counter_gf1, counter_gf2, counter_gf3, counter_gf4 : real;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43, ok44 : bool;
   allsleep, nonemove, verhor_dontmove, onlybotmoves : bool;
 let
 
@@ -88,10 +87,11 @@ let
   assert (not spec_waiting_ack_ver_mot) => ack_ver = SLEEP;
   --assert respondsTo(spec_waiting_ack_ver_mot, (ack_ver = SLEEP));
 
-  responded1 = true -> (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot))));
+  assert Initially(responded1);
+  assert responded1 => (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot))));
+  assert (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
   ok35 = Initially(not spec_waiting_ack_hor_mot);
@@ -103,10 +103,11 @@ let
   assert (not spec_waiting_ack_hor_mot) => ack_hor = SLEEP;
   --assert respondsTo(spec_waiting_ack_hor_mot, (ack_hor = SLEEP));
 
-  responded2 = true -> (pre((ack_hor = SLEEP) or responded2 and (not (spec_waiting_ack_hor_mot))));
+  assert Initially(responded2);
+  assert responded2 => (pre((ack_hor = SLEEP) or responded2 and (not (spec_waiting_ack_hor_mot))));
+  assert (pre((ack_hor = SLEEP) or responded2 and (not (spec_waiting_ack_hor_mot)))) => responded2;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
-
   assert counter_r2 < K;
 
   counter_gf1 = 0.0 -> if (color <> BLACK) then 0.0 else pre(counter_gf1) + 1.0;
@@ -117,15 +118,23 @@ let
   assert counter_gf3 < K;
   --assert respondsTo((num_of_cubes <> ZERO), (num_of_cubes = ZERO));
 
-  responded3 = true -> (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO))));
+  assert Initially(responded3);
+  assert responded3 => (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO))));
+  assert (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO)))) => responded3;
 
   counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r3) + 1.0;
-
   assert counter_r3 < K;
 
-  ok40 = respondsTo((color <> BLACK), (horMot = MOVE and detect = spec_currentColor));
+  ok40 = Initially(responded4);
+  ok41 = responded4 => pre((horMot = MOVE and detect = spec_currentColor) or responded4 and (not (color <> BLACK)));
+  ok42 = pre((horMot = MOVE and detect = spec_currentColor) or responded4 and (not (color <> BLACK))) => responded4;
+
+  counter_r4 = 0.0 -> if responded4 then 0.0 else pre(counter_r4) + 1.0;
+  ok43 = counter_r4 < K;
+
+  --ok40 = respondsTo((color <> BLACK), (horMot = MOVE and detect = spec_currentColor));
   counter_gf4 = 0.0 -> if (horMot = MOVE) then 0.0 else pre(counter_gf4) + 1.0;
-  ok41 = counter_gf4 < K;
+  ok44 = counter_gf4 < K;
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9 and ok10 and ok11 and ok12 and ok13 and ok14 and ok15 and ok16 and ok17 and ok18 and ok19 and ok20 and ok21 and ok22 and ok23 and ok24 and ok25 and ok26 and ok27 and ok28 and ok29 and ok30 and ok31 and ok32 and ok33 and ok34;
 
@@ -170,6 +179,9 @@ let
   --%PROPERTY ok39;
   --%PROPERTY ok40;
   --%PROPERTY ok41;
+  --%PROPERTY ok42;
+  --%PROPERTY ok43;
+  --%PROPERTY ok44;
 
   --%REALIZABLE color, detect, ack_ver, ack_hor, ack_bot, starting_pos, num_of_cubes, speedButton;
 tel;

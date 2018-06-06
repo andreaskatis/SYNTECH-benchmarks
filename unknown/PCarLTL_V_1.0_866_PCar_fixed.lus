@@ -28,12 +28,10 @@ let
   o = i -> true;
 tel;
 
-node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; policy : sys_policy) returns ();
+node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; policy : sys_policy;   responded1 : bool) returns ();
 var
-  responded1 : bool;
   counter_r1, counter_gf1, counter_gf2 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31 : bool;
-  in_initial_state : bool;
 let
 
   ok1 = Initially(policy = SEEKING);
@@ -65,9 +63,8 @@ let
   ok18 = (policy = SEEKING and obstacle = CLEAR and pre(sideSense = FAR) and sideSense = CENTERED) => (pre(steer = EASY_LEFT) and steer = CENTER);
   ok19 = (policy = SEEKING and obstacle = CLEAR and pre(sideSense = CLOSE) and sideSense = CENTERED) => (pre(steer = EASY_RIGHT) and steer = CENTER);
 
-  in_initial_state = true -> pre(true -> false);
-  assert true -> in_initial_state or ((pre(pre(sideSense = FAR)) and pre(sideSense = CENTERED)) => (sideSense = CENTERED));
-  assert true -> in_initial_state or ((pre(pre(sideSense = CLOSE)) and pre(sideSense = CENTERED)) => (sideSense = CENTERED));
+  assert (pre(true -> pre(sideSense = FAR) and sideSense = CENTERED)) => (sideSense = CENTERED);
+  assert (pre(true -> pre(sideSense = CLOSE) and sideSense = CENTERED)) => (sideSense = CENTERED);
 
 
   --measuring allignment
@@ -87,20 +84,21 @@ let
   ok31 = pre(policy = PARKED) => ((policy = pre(policy)) and pre(throttle = STOP and steer = CENTER and parkCommand = park_STOP));
 
   --env assumptions
-  assert true -> (pre(policy = SEEKING) => parkResult = NA);
+  assert (pre(policy = SEEKING) => parkResult = NA);
   counter_gf2 = 0.0 -> if (policy = MEASURING and parkResult = PARALLEL and obstacle = CLEAR) then 0.0 else pre(counter_gf2) + 1.0;
   assert counter_gf2 < K;
   assert Initially(sideSense = CENTERED and parkResult = NA);
 
   --assert respondsTo((throttle = BWD), (obstacle = CLEAR));
 
-  responded1 = true -> (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD))));
+  assert Initially(responded1);
+  assert responded1 => (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD))));
+  assert (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
-  assert true -> (pre(throttle = STOP) => ((obstacle = pre(obstacle)) and (sideSense = pre(sideSense))));
+  assert (pre(throttle = STOP) => ((obstacle = pre(obstacle)) and (sideSense = pre(sideSense))));
 
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9 and ok10 and ok11 and ok12 and ok13 and ok14 and ok15 and ok16 and ok17 and ok18 and ok19 and ok20 and ok21 and ok22 and ok23 and ok24 and ok25 and ok26 and ok27 and ok28 and ok29 and ok30 and ok31;

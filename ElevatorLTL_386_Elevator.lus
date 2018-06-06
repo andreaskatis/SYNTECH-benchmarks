@@ -1,6 +1,6 @@
 --floor is a keyword in Lustre. Changed to fl.
 
-const K = 5.0;
+const K = 2.0;
 type env_floor = enum {LOWER, MIDDLE, UPPER, NONE};
 type sys_elevMot = enum {FWD, BWD, STOP};
 

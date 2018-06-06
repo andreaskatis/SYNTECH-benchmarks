@@ -1,4 +1,4 @@
-const K = 10.0;
+const K = 2.0;
 type env_color = enum {RED, GREEN, BLUE, BLACK, YELLOW, WHITE};
 type env_ack_ver_hor = enum {MOVE, SLEEP};
 type env_atEdge = enum {NOEDGE, EDGE};
@@ -30,66 +30,87 @@ let
   o = i -> true;
 tel;
 
-node ColorSort(color : env_color; detect : env_color; ack_ver_hor : env_ack_ver_hor; ack_bot : env_ack_ver_hor; atEdge : env_atEdge; num_of_cubes : env_num_of_cubes; haltButton : env_haltButton; speedButton : env_haltButton; verMot : env_ack_ver_hor; horMot : env_ack_ver_hor; botMot : sys_botMot; spec_allsleep : bool; motSpeed : sys_motSpeed; reduce_num_of_cubes : sys_reduce_num_of_cubes; spec_state : sys_spec_state; spec_currentColor : env_color; spec_stage : sys_spec_stage; spec_finished_cycle, spec_speedButtonValidPressed, spec_haltButtonValidPressed : bool; spec_pausing : sys_spec_pausing) returns ();
+node ColorSort(color : env_color; detect : env_color; ack_ver_hor : env_ack_ver_hor; ack_bot : env_ack_ver_hor; atEdge : env_atEdge; num_of_cubes : env_num_of_cubes; haltButton : env_haltButton; speedButton : env_haltButton; verMot : env_ack_ver_hor; horMot : env_ack_ver_hor; botMot : sys_botMot; spec_allsleep : bool; motSpeed : sys_motSpeed; reduce_num_of_cubes : sys_reduce_num_of_cubes; spec_state : sys_spec_state; spec_currentColor : env_color; spec_stage : sys_spec_stage; spec_finished_cycle, spec_speedButtonValidPressed, spec_haltButtonValidPressed : bool; spec_pausing : sys_spec_pausing; responded1, responded2, responded3, responded4 : bool) returns ();
 var
-  responded1, responded2, responded3 : bool;
-  counter_r1, counter_r2, counter_r3, counter_gf1 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27 : bool;
+  counter_r1, counter_r2, counter_r3, counter_r4, counter_gf1 : real;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34 : bool;
 let
 
-  ok1 = ((haltButton = PRESS and pre(haltButton = RELEASE)) => spec_haltButtonValidPressed) and (spec_haltButtonValidPressed => (haltButton = PRESS and pre(haltButton = RELEASE)));
-  ok2 = pre((spec_haltButtonValidPressed and spec_pausing = GO) or ((not spec_haltButtonValidPressed) and spec_pausing = PAUSE)) => spec_pausing = PAUSE;
-  ok3 = pre(((not spec_haltButtonValidPressed) and spec_pausing = GO) or (spec_haltButtonValidPressed and spec_pausing = PAUSE)) => spec_pausing = GO;
-  ok4 = respondsTo((spec_haltButtonValidPressed and spec_pausing = GO), (spec_haltButtonValidPressed));
-  ok5 = pre(spec_pausing = PAUSE or ack_ver_hor = MOVE) => (pre(spec_allsleep) and spec_stage = pre(spec_stage));
-  ok6 = pre(spec_stage <> WAIT) => spec_currentColor = pre(spec_currentColor);
-  ok7 = verMot = MOVE => (botMot = STOP and horMot = SLEEP);
-  ok8 = horMot = MOVE => (botMot = STOP and verMot = SLEEP);
-  ok9 = botMot <> STOP => (verMot = SLEEP and horMot = SLEEP);
-  ok10 = (spec_allsleep => (verMot = SLEEP and horMot = SLEEP and botMot = STOP)) and ((verMot = SLEEP and horMot = SLEEP and botMot = STOP) => spec_allsleep);
-  ok11 = Initially(motSpeed = LEVEL1 and spec_stage = WAIT and spec_pausing = GO);
+  ok1 = ((haltButton = PRESS and pre(haltButton = RELEASE)) => spec_haltButtonValidPressed);
+  ok2 = (spec_haltButtonValidPressed => (haltButton = PRESS and pre(haltButton = RELEASE)));
+  ok3 = pre((spec_haltButtonValidPressed and spec_pausing = GO) or ((not spec_haltButtonValidPressed) and spec_pausing = PAUSE)) => spec_pausing = PAUSE;
+  ok4 = pre(((not spec_haltButtonValidPressed) and spec_pausing = GO) or (spec_haltButtonValidPressed and spec_pausing = PAUSE)) => spec_pausing = GO;
 
-  ok12 = pre((color = BLACK or num_of_cubes = ZERO) and spec_stage = WAIT) => (pre(spec_allsleep) and spec_stage = WAIT);
-  ok13 = pre(color <> BLACK and num_of_cubes <> ZERO and spec_stage = WAIT and spec_pausing = GO) => (pre(verMot = MOVE) and spec_currentColor = pre(color) and spec_stage = KICK);
-  ok14 = pre(ack_ver_hor = SLEEP and spec_stage = KICK and spec_pausing = GO) => (pre(botMot = RIGHT) and spec_stage = TOANGLERIGHT);
-  ok15 = pre(atEdge <> EDGE and (spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and detect <> spec_currentColor and spec_pausing = GO) => (pre((spec_stage = TOANGLERIGHT => botMot = RIGHT) and (spec_stage = TOANGLELEFT => botMot = LEFT)) and spec_stage = pre(spec_stage));
+  --ok4 = respondsTo((spec_haltButtonValidPressed and spec_pausing = GO), (spec_haltButtonValidPressed));
+  ok5 = Initially(responded1);
+  ok6 = responded1 => (pre(spec_haltButtonValidPressed or responded1) and (not (spec_haltButtonValidPressed and spec_pausing = GO)));
+  ok7 = (pre(spec_haltButtonValidPressed or responded1) and (not (spec_haltButtonValidPressed and spec_pausing = GO))) => responded1;
 
-  ok16 = pre(atEdge = EDGE and (spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and spec_pausing = GO and detect <> spec_currentColor) => ((pre(spec_stage = TOANGLERIGHT) => (pre(botMot = LEFT) and spec_stage = TOANGLELEFT)) and (pre(spec_stage = TOANGLELEFT) => (pre(botMot = RIGHT) and spec_stage = TOANGLERIGHT)));
+  counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
+  ok8 = counter_r1 < K;
 
-  ok17 = pre((spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and spec_pausing = GO and detect = spec_currentColor) => (pre(verMot = SLEEP and horMot = MOVE and botMot = STOP) and spec_stage = DROP);
+  ok9 = pre(spec_pausing = PAUSE or ack_ver_hor = MOVE) => (pre(spec_allsleep) and spec_stage = pre(spec_stage));
+  ok10 = pre(spec_stage <> WAIT) => spec_currentColor = pre(spec_currentColor);
+  ok11 = verMot = MOVE => (botMot = STOP and horMot = SLEEP);
+  ok12 = horMot = MOVE => (botMot = STOP and verMot = SLEEP);
+  ok13 = botMot <> STOP => (verMot = SLEEP and horMot = SLEEP);
+  ok14 = (spec_allsleep => (verMot = SLEEP and horMot = SLEEP and botMot = STOP));
+  ok15 = ((verMot = SLEEP and horMot = SLEEP and botMot = STOP) => spec_allsleep);
+  ok16 = Initially(motSpeed = LEVEL1 and spec_stage = WAIT and spec_pausing = GO);
 
-  ok18 = pre(((ack_ver_hor = SLEEP and spec_stage = DROP) or (ack_bot = MOVE or (ack_bot = SLEEP and (true -> pre(spec_pausing = PAUSE))) and spec_stage = FROMANGLE)) and spec_pausing = GO) => (pre(botMot = INITPOS) and spec_stage = FROMANGLE);
+  ok17 = pre((color = BLACK or num_of_cubes = ZERO) and spec_stage = WAIT) => (pre(spec_allsleep) and spec_stage = WAIT);
+  ok18 = pre(color <> BLACK and num_of_cubes <> ZERO and spec_stage = WAIT and spec_pausing = GO) => (pre(verMot = MOVE) and spec_currentColor = pre(color) and spec_stage = KICK);
+  ok19 = pre(ack_ver_hor = SLEEP and spec_stage = KICK and spec_pausing = GO) => (pre(botMot = RIGHT) and spec_stage = TOANGLERIGHT);
+  ok20 = pre(atEdge <> EDGE and (spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and detect <> spec_currentColor and spec_pausing = GO) => (pre((spec_stage = TOANGLERIGHT => botMot = RIGHT) and (spec_stage = TOANGLELEFT => botMot = LEFT)) and spec_stage = pre(spec_stage));
 
-  ok19 = (spec_finished_cycle => (ack_bot = SLEEP and pre(spec_pausing = GO) and spec_stage = FROMANGLE and spec_pausing = GO)) and ((ack_bot = SLEEP and pre(spec_pausing = GO) and spec_stage = FROMANGLE and spec_pausing = GO) => spec_finished_cycle);
+  ok21 = pre(atEdge = EDGE and (spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and spec_pausing = GO and detect <> spec_currentColor) => ((pre(spec_stage = TOANGLERIGHT) => (pre(botMot = LEFT) and spec_stage = TOANGLELEFT)) and (pre(spec_stage = TOANGLELEFT) => (pre(botMot = RIGHT) and spec_stage = TOANGLERIGHT)));
 
-  ok20 = pre(spec_finished_cycle) => (pre(spec_allsleep) and spec_stage = WAIT);
+  ok22 = pre((spec_stage = TOANGLERIGHT or spec_stage = TOANGLELEFT) and spec_pausing = GO and detect = spec_currentColor) => (pre(verMot = SLEEP and horMot = MOVE and botMot = STOP) and spec_stage = DROP);
 
-  ok21 = (spec_finished_cycle => reduce_num_of_cubes = REDUCE) and (reduce_num_of_cubes = REDUCE => spec_finished_cycle);
+  ok23 = pre(((ack_ver_hor = SLEEP and spec_stage = DROP) or (ack_bot = MOVE or (ack_bot = SLEEP and (true -> pre(spec_pausing = PAUSE))) and spec_stage = FROMANGLE)) and spec_pausing = GO) => (pre(botMot = INITPOS) and spec_stage = FROMANGLE);
 
-  ok22 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
-  ok23 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
-  ok24 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
-  ok25 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
-  ok26 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL2;
-  ok27 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL3;
+  ok24 = (spec_finished_cycle => (ack_bot = SLEEP and pre(spec_pausing = GO) and spec_stage = FROMANGLE and spec_pausing = GO));
+  ok25 = ((ack_bot = SLEEP and pre(spec_pausing = GO) and spec_stage = FROMANGLE and spec_pausing = GO) => spec_finished_cycle);
+
+  ok26 = pre(spec_finished_cycle) => (pre(spec_allsleep) and spec_stage = WAIT);
+
+  ok27 = (spec_finished_cycle => reduce_num_of_cubes = REDUCE);
+  ok28 = (reduce_num_of_cubes = REDUCE => spec_finished_cycle);
+
+  ok29 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
+  ok30 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
+  ok31 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
+  ok32 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
+  ok33 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL2;
+  ok34 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL3;
 
   --assert respondsTo((ack_ver_hor = MOVE), (ack_ver_hor = SLEEP));
   --assert respondsTo((ack_bot = MOVE), (ack_bot = SLEEP));
   assert (spec_stage <> KICK and spec_stage <> DROP) => ack_ver_hor = SLEEP;
   --assert respondsTo((num_of_cubes <> ZERO), (num_of_cubes = ZERO));
 
-  responded1 = true -> (pre((ack_ver_hor = SLEEP) or responded1 and (not (ack_ver_hor = MOVE))));
-  responded2 = true -> (pre((ack_bot = SLEEP) or responded2 and (not (ack_bot = MOVE))));
-  responded3 = true -> (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO))));
 
-  counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
+  --responded1 = true -> (pre((ack_ver_hor = SLEEP) or responded1 and (not (ack_ver_hor = MOVE))));
+  --responded2 = true -> (pre((ack_bot = SLEEP) or responded2 and (not (ack_bot = MOVE))));
+  --responded3 = true -> (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO))));
+
+  assert Initially(responded2);
+  assert responded2 => (pre((ack_ver_hor = SLEEP) or responded1 and (not (ack_ver_hor = MOVE))));
+  assert (pre((ack_ver_hor = SLEEP) or responded1 and (not (ack_ver_hor = MOVE)))) => responded2;
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
-  counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r3) + 1.0;
-
-  assert counter_r1 < K;
   assert counter_r2 < K;
+
+  assert Initially(responded3);
+  assert responded3 => (pre((ack_bot = SLEEP) or responded2 and (not (ack_bot = MOVE))));
+  assert (pre((ack_bot = SLEEP) or responded2 and (not (ack_bot = MOVE)))) => responded3;
+  counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r4) + 1.0;
   assert counter_r3 < K;
 
+  assert Initially(responded4);
+  assert responded4 => (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO))));
+  assert (pre((num_of_cubes = ZERO) or responded3 and (not (num_of_cubes <> ZERO)))) => responded4;
+  counter_r4 = 0.0 -> if (responded4) then 0.0 else pre(counter_r4) + 1.0;
+  assert counter_r4 < K;
 
   counter_gf1 = 0.0 -> if (color <> BLACK) then 0.0 else pre(counter_gf1) + 1.0;
   assert counter_gf1 < K;
@@ -123,6 +144,13 @@ let
   --%PROPERTY ok25;
   --%PROPERTY ok26;
   --%PROPERTY ok27;
+  --%PROPERTY ok28;
+  --%PROPERTY ok29;
+  --%PROPERTY ok30;
+  --%PROPERTY ok31;
+  --%PROPERTY ok32;
+  --%PROPERTY ok33;
+  --%PROPERTY ok34;
 
   --%REALIZABLE color, detect, ack_ver_hor, ack_bot, atEdge, num_of_cubes, haltButton, speedButton;
 tel;

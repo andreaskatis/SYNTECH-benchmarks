@@ -28,7 +28,7 @@ tel;
 node ColorSort(color : env_color; detect : env_color; ack_ver, ack_hor, ack_bot : env_ack_ver; speedButton : env_speedButton; verMot, horMot : env_ack_ver; botMot : sys_botMot; motSpeed : sys_motSpeed; spec_state__return : sys_spec_state__return; spec_currentColor : env_color; spec_dropping : bool; spec_speedButtonValidPressed : bool) returns ();
 var
   counter_gf1 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18 : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20 : bool;
   allsleep, nonemove, onlybotmoves : bool;
 let
   allsleep = (verMot = SLEEP and horMot = SLEEP and botMot = STOP);
@@ -42,39 +42,45 @@ let
   ok4 = pre(verMot = SLEEP) => (spec_currentColor = pre(spec_currentColor));
 
 
-  ok5 = ((spec_dropping = pre(spec_dropping)) => (pre(verMot = SLEEP))) and ((pre(verMot = SLEEP)) => (spec_dropping = pre(spec_dropping)));
+  ok5 = ((spec_dropping = pre(spec_dropping)) => (pre(verMot = SLEEP)));
 
-  ok6 = (ack_ver = MOVE or ack_hor = MOVE) => allsleep;
+  ok6 = ((pre(verMot = SLEEP)) => (spec_dropping = pre(spec_dropping)));
+
+  ok7 = (ack_ver = MOVE or ack_hor = MOVE) => allsleep;
 
   assert (not spec_dropping) => nonemove;
 
   --running the robot
 
-  ok7 = (color = BLACK and (not spec_dropping)) => allsleep;
+  ok8 = (color = BLACK and (not spec_dropping)) => allsleep;
 
-  ok8 = pre(color <> BLACK and (not spec_dropping)) => (pre(verMot = MOVE) and (spec_currentColor = pre(color)) and spec_dropping);
+  ok9 = pre(color <> BLACK and (not spec_dropping)) => (pre(verMot = MOVE) and (spec_currentColor = pre(color)) and spec_dropping);
 
-  ok9 = ((nonemove and spec_dropping) or (pre(botMot = SEEK) and onlybotmoves and detect <> spec_currentColor)) => botMot = SEEK;
+  ok10 = ((nonemove and spec_dropping) or (pre(botMot = SEEK) and onlybotmoves and detect <> spec_currentColor)) => botMot = SEEK;
 
-  ok10 = (spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)) => horMot = MOVE;
+  ok11 = (spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)) => horMot = MOVE;
 
   --speed button
 
-  ok11 = Initially(motSpeed = LEVEL1 and (not spec_dropping));
+  --ok12 = true;
+  ok12 = (motSpeed = LEVEL1 and (not spec_dropping)) -> true;
 
-  ok12 = ((speedButton = PRESS and pre(speedButton = RELEASE)) => spec_speedButtonValidPressed) and (spec_speedButtonValidPressed => (speedButton = PRESS and pre(speedButton = RELEASE)));
+  --ok12 = Initially(motSpeed = LEVEL1 and (not spec_dropping));
 
-  ok13 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
+  ok13 = ((speedButton = PRESS and pre(speedButton = RELEASE)) => spec_speedButtonValidPressed);
+  ok14 = (spec_speedButtonValidPressed => (speedButton = PRESS and pre(speedButton = RELEASE)));
 
-  ok14 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
+  ok15 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
 
-  ok15 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
+  ok16 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
 
-  ok16 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
+  ok17 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
 
-  ok17 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL2))) => motSpeed = LEVEL2;
+  ok18 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
 
-  ok18 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL3))) => motSpeed = LEVEL3;
+  ok19 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL2))) => motSpeed = LEVEL2;
+
+  ok20 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL3))) => motSpeed = LEVEL3;
 
   counter_gf1 = 0.0 -> if (color <> BLACK) then 0.0 else pre(counter_gf1) + 1.0;
   assert counter_gf1 < K;
@@ -99,6 +105,8 @@ let
   --%PROPERTY ok16;
   --%PROPERTY ok17;
   --%PROPERTY ok18;
+  --%PROPERTY ok19;
+  --%PROPERTY ok20;
 
   --%REALIZABLE color, detect, ack_ver, ack_hor, ack_bot, speedButton;
 tel;

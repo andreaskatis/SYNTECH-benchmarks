@@ -28,13 +28,12 @@ let
 tel;
 
 
-node AspectLTLAspect(obstacle : env_obstacle; sideSensor : env_sideSensor; rearSideSensor : env_rearSideSensor; steeringMot : sys_steeringMot; sensorMot : sys_sensorMot; engineMot : sys_engineMot; carStatus : sys_carStatus; spec_counter : real; spec_obstacleCounter : real) returns ();
+node AspectLTLAspect(obstacle : env_obstacle; sideSensor : env_sideSensor; rearSideSensor : env_rearSideSensor; steeringMot : sys_steeringMot; sensorMot : sys_sensorMot; engineMot : sys_engineMot; carStatus : sys_carStatus; spec_counter : real; spec_obstacleCounter : real; responded1, responded2, responded3, responded4, responded5, responded6, responded7 : bool) returns ();
 var
-  responded1, responded2, responded3, responded4 : bool;
-  counter_gf1, counter_r1, counter_r2, counter_r3, counter_r4 : real;
+  counter_gf1, counter_r1, counter_r2, counter_r3, counter_r4, counter_r5, counter_r6, counter_r7 : real;
   counterLimit, phaseNone, firstPhase, secondPhase, thirdPhase, suitableParallelPS, suitablePerpendicularPS, preparingParallelSteps : real;
   weGotSideSensorSeekingValues, weGotRearSideSensorSeekingValues, weGotSideSensorMeasuringValues, weGotRearSideSensorMeasuringValues, Stop, capablePerpendicular, keepCarStatus, keepCounterValue, movingFwd, movingBwd, rearTooFar, rearTooClose, rearCentered, frontCentered, frontTooFar, frontTooClose, movingNextToObstacle : bool;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43, ok44, ok45, ok46, ok47, ok48, ok49, ok50, ok51, ok52, ok53, ok54, ok55, ok56 : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43, ok44, ok45, ok46, ok47, ok48, ok49, ok50, ok51, ok52, ok53, ok54, ok55, ok56, ok57, ok58, ok59, ok60, ok61, ok62, ok63, ok64, ok65 : bool;
 
 let
   assert (spec_counter >= 0.0) and (spec_counter <= 14.0);
@@ -122,7 +121,9 @@ let
 
   --assert respondsTo((obstacle = BLOCKED) and (carStatus <> MEASURE_PARKING) and (carStatus <> SEEKING_FOR_PS), (obstacle = CLEAR));
 
-  responded1 = true -> (pre((obstacle = CLEAR) or responded1 and (not ((obstacle = BLOCKED) and (carStatus <> MEASURE_PARKING) and (carStatus <> SEEKING_FOR_PS)))));
+  assert Initially(responded1);
+  assert responded1 => (pre((obstacle = CLEAR) or responded1 and (not ((obstacle = BLOCKED) and (carStatus <> MEASURE_PARKING) and (carStatus <> SEEKING_FOR_PS)))));
+  assert (pre((obstacle = CLEAR) or responded1 and (not ((obstacle = BLOCKED) and (carStatus <> MEASURE_PARKING) and (carStatus <> SEEKING_FOR_PS))))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
   assert counter_r1 < K;
@@ -145,11 +146,19 @@ let
 
   ok21 = (pre((carStatus = MEASURE_PARKING) and (spec_counter = suitableParallelPS) and (obstacle = CLEAR)) => (carStatus = PREPARE_FOR_PARALLEL_PARKING) and (spec_counter = 0.0));
 
-  ok22 = respondsTo((carStatus = MEASURE_PARKING), ((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)));
+  ok22 = Initially(responded5);
+  ok23 = responded5 => pre(((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)) or responded5 and (not (carStatus = MEASURE_PARKING)));
+  ok24 = pre(((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)) or responded5 and (not (carStatus = MEASURE_PARKING))) => responded5;
+
+  counter_r5 = 0.0 -> if responded5 then 0.0 else pre(counter_r5) + 1.0;
+  ok25 = counter_r5 < K;
+  --ok22 = respondsTo((carStatus = MEASURE_PARKING), ((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)));
 
   --assert respondsTo((obstacle = CLEAR and engineMot = eng_FWD), ((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)));
 
-  responded2 = true -> (pre(((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)) or responded2 and (not (obstacle = CLEAR and engineMot = eng_FWD))));
+  assert Initially(responded2);
+  assert responded2 => (pre(((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)) or responded2 and (not (obstacle = CLEAR and engineMot = eng_FWD))));
+  assert (pre(((carStatus = PREPARE_FOR_PARALLEL_PARKING) or (carStatus = PERPENDICULAR)) or responded2 and (not (obstacle = CLEAR and engineMot = eng_FWD)))) => responded2;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
   assert counter_r2 < K;
@@ -157,19 +166,27 @@ let
 
   -- Preparing for parallel parking
 
-  ok23 = (carStatus = PREPARE_FOR_PARALLEL_PARKING) => (((steeringMot = ALIGN_RIGHT) or (steeringMot = CENTER) or (steeringMot = ALIGN_LEFT)) and ((engineMot = eng_FWD) or (engineMot = STOP)));
+  ok26 = (carStatus = PREPARE_FOR_PARALLEL_PARKING) => (((steeringMot = ALIGN_RIGHT) or (steeringMot = CENTER) or (steeringMot = ALIGN_LEFT)) and ((engineMot = eng_FWD) or (engineMot = STOP)));
 
-  ok24 = (pre(carStatus = PREPARE_FOR_PARALLEL_PARKING and obstacle = CLEAR and spec_counter < preparingParallelSteps)) => ((spec_counter = pre(spec_counter) + 1.0) and engineMot = eng_FWD);
+  ok27 = (pre(carStatus = PREPARE_FOR_PARALLEL_PARKING and obstacle = CLEAR and spec_counter < preparingParallelSteps)) => ((spec_counter = pre(spec_counter) + 1.0) and engineMot = eng_FWD);
 
-  ok25 = (carStatus = PREPARE_FOR_PARALLEL_PARKING and spec_counter < preparingParallelSteps) => keepCarStatus;
+  ok28 = (carStatus = PREPARE_FOR_PARALLEL_PARKING and spec_counter < preparingParallelSteps) => keepCarStatus;
 
-  ok26 = (pre(carStatus = PREPARE_FOR_PARALLEL_PARKING and spec_counter = preparingParallelSteps and obstacle = CLEAR) => (pre(Stop) and (carStatus = PARALLEL) and (spec_counter = firstPhase) and pre(sensorMot = BWD)));
+  ok29 = (pre(carStatus = PREPARE_FOR_PARALLEL_PARKING and spec_counter = preparingParallelSteps and obstacle = CLEAR) => (pre(Stop) and (carStatus = PARALLEL) and (spec_counter = firstPhase) and pre(sensorMot = BWD)));
 
-  ok27 = respondsTo((carStatus = PREPARE_FOR_PARALLEL_PARKING), (spec_counter = preparingParallelSteps));
+  ok30 = Initially(responded6);
+  ok31 = responded6 => pre((spec_counter = preparingParallelSteps) or responded6 and (not (carStatus = PREPARE_FOR_PARALLEL_PARKING)));
+  ok32 = pre((spec_counter = preparingParallelSteps) or responded6 and (not (carStatus = PREPARE_FOR_PARALLEL_PARKING))) => responded6;
+
+  counter_r6 = 0.0 -> if responded6 then 0.0 else pre(counter_r6) + 1.0;
+  ok33 = counter_r6 < K;
+  --ok27 = respondsTo((carStatus = PREPARE_FOR_PARALLEL_PARKING), (spec_counter = preparingParallelSteps));
 
   --assert respondsTo(((obstacle=CLEAR and carStatus=PREPARE_FOR_PARALLEL_PARKING) => (engineMot= eng_FWD)),(carStatus=PARALLEL));
 
-  responded3 = true -> (pre((carStatus=PARALLEL) or responded3 and (not ((obstacle=CLEAR and carStatus=PREPARE_FOR_PARALLEL_PARKING) => (engineMot= eng_FWD)))));
+  assert Initially(responded3);
+  assert responded3 => (pre((carStatus=PARALLEL) or responded3 and (not ((obstacle=CLEAR and carStatus=PREPARE_FOR_PARALLEL_PARKING) => (engineMot= eng_FWD)))));
+  assert (pre((carStatus=PARALLEL) or responded3 and (not ((obstacle=CLEAR and carStatus=PREPARE_FOR_PARALLEL_PARKING) => (engineMot= eng_FWD))))) => responded3;
 
   counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r3) + 1.0;
   assert counter_r3 < K;
@@ -177,69 +194,77 @@ let
 
   -- parking parallel
 
-  ok28 = (carStatus = PARALLEL) => (((steeringMot = MAX_RIGHT) or (steeringMot = CENTER) or (steeringMot = MAX_LEFT)) and ((engineMot = PARKING_BWD) or (engineMot = STOP)));
+  ok34 = (carStatus = PARALLEL) => (((steeringMot = MAX_RIGHT) or (steeringMot = CENTER) or (steeringMot = MAX_LEFT)) and ((engineMot = PARKING_BWD) or (engineMot = STOP)));
 
-  ok29 = (pre(carStatus = PARALLEL and spec_counter = firstPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_BWD and keepCarStatus and steeringMot = MAX_RIGHT) and spec_counter = secondPhase));
+  ok35 = (pre(carStatus = PARALLEL and spec_counter = firstPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_BWD and keepCarStatus and steeringMot = MAX_RIGHT) and spec_counter = secondPhase));
 
-  ok30 = (pre(carStatus = PARALLEL and spec_counter = secondPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_BWD) and (carStatus = PARKED) and pre(steeringMot = MAX_LEFT)));
+  ok36 = (pre(carStatus = PARALLEL and spec_counter = secondPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_BWD) and (carStatus = PARKED) and pre(steeringMot = MAX_LEFT)));
 
-  ok31 = (carStatus = PERPENDICULAR) => (((steeringMot = MAX_RIGHT) or (steeringMot = CENTER) or (steeringMot = MAX_LEFT)) and ((engineMot = PARKING_FWD) or (engineMot = STOP) or (engineMot = PREPARE_PERPENDICULAR_BWD) or (engineMot = PERPENDICULAR_BWD)));
+  ok37 = (carStatus = PERPENDICULAR) => (((steeringMot = MAX_RIGHT) or (steeringMot = CENTER) or (steeringMot = MAX_LEFT)) and ((engineMot = PARKING_FWD) or (engineMot = STOP) or (engineMot = PREPARE_PERPENDICULAR_BWD) or (engineMot = PERPENDICULAR_BWD)));
 
-  ok32 = (pre(carStatus = PERPENDICULAR and spec_counter = firstPhase and obstacle = CLEAR) => (pre(engineMot = PREPARE_PERPENDICULAR_BWD and keepCarStatus and steeringMot = CENTER) and (spec_counter = secondPhase)));
+  ok38 = (pre(carStatus = PERPENDICULAR and spec_counter = firstPhase and obstacle = CLEAR) => (pre(engineMot = PREPARE_PERPENDICULAR_BWD and keepCarStatus and steeringMot = CENTER) and (spec_counter = secondPhase)));
 
-  ok33 = (pre(carStatus = PERPENDICULAR and spec_counter = secondPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_FWD and keepCarStatus and steeringMot = MAX_LEFT) and (spec_counter = thirdPhase)));
+  ok39 = (pre(carStatus = PERPENDICULAR and spec_counter = secondPhase and obstacle = CLEAR) => (pre(engineMot = PARKING_FWD and keepCarStatus and steeringMot = MAX_LEFT) and (spec_counter = thirdPhase)));
 
-  ok34 = (pre(carStatus = PERPENDICULAR and spec_counter = thirdPhase and obstacle = CLEAR) => (pre(engineMot = PERPENDICULAR_BWD) and (carStatus = PARKED) and pre(steeringMot = MAX_RIGHT)));
+  ok40 = (pre(carStatus = PERPENDICULAR and spec_counter = thirdPhase and obstacle = CLEAR) => (pre(engineMot = PERPENDICULAR_BWD) and (carStatus = PARKED) and pre(steeringMot = MAX_RIGHT)));
 
   -- bypassing
 
-  ok35 = ((obstacle = BLOCKED and carStatus = BYPASSING and ((spec_counter = 1.0) or (spec_counter = 2.0) or (spec_counter = 11.0)) and pre(sensorMot = BWD) and (not movingFwd)) => sensorMot = BWD);
+  ok41 = ((obstacle = BLOCKED and carStatus = BYPASSING and ((spec_counter = 1.0) or (spec_counter = 2.0) or (spec_counter = 11.0)) and pre(sensorMot = BWD) and (not movingFwd)) => sensorMot = BWD);
 
-  ok36 = (pre(((carStatus = SEEKING_FOR_PS) or (carStatus = MEASURE_PARKING)) and (spec_obstacleCounter < 2.0 and obstacle = BLOCKED)) => (pre(Stop) and (spec_obstacleCounter = pre(spec_obstacleCounter) + 1.0) and pre(keepCarStatus and keepCounterValue)));
+  ok42 = (pre(((carStatus = SEEKING_FOR_PS) or (carStatus = MEASURE_PARKING)) and (spec_obstacleCounter < 2.0 and obstacle = BLOCKED)) => (pre(Stop) and (spec_obstacleCounter = pre(spec_obstacleCounter) + 1.0) and pre(keepCarStatus and keepCounterValue)));
 
-  ok37 = (pre(((carStatus = SEEKING_FOR_PS) or (carStatus = MEASURE_PARKING)) and spec_obstacleCounter = 2.0 and obstacle = BLOCKED and (true -> pre(obstacle = BLOCKED))) => (pre(Stop) and (carStatus = BYPASSING) and (spec_counter = 0.0)));
+  ok43 = (pre(((carStatus = SEEKING_FOR_PS) or (carStatus = MEASURE_PARKING)) and spec_obstacleCounter = 2.0 and obstacle = BLOCKED and (true -> pre(obstacle = BLOCKED))) => (pre(Stop) and (carStatus = BYPASSING) and (spec_counter = 0.0)));
 
-  ok38 = (carStatus = BYPASSING and spec_counter < 10.0) => (keepCarStatus);
+  ok44 = (carStatus = BYPASSING and spec_counter < 10.0) => (keepCarStatus);
 
-  ok39 = (carStatus = BYPASSING and spec_counter = 0.0) => (Stop and sensorMot = BWD);
+  ok45 = (carStatus = BYPASSING and spec_counter = 0.0) => (Stop and sensorMot = BWD);
 
-  ok40 = (pre(carStatus = BYPASSING and spec_counter = 0.0 and obstacle = CLEAR) => spec_counter = 1.0);
+  ok46 = (pre(carStatus = BYPASSING and spec_counter = 0.0 and obstacle = CLEAR) => spec_counter = 1.0);
 
-  ok41 = (pre(carStatus = BYPASSING and spec_counter = 1.0 and obstacle = CLEAR) => pre(engineMot = eng_BWD and steeringMot = CENTER) and spec_counter = 2.0);
+  ok47 = (pre(carStatus = BYPASSING and spec_counter = 1.0 and obstacle = CLEAR) => pre(engineMot = eng_BWD and steeringMot = CENTER) and spec_counter = 2.0);
 
-  ok42 = (pre(carStatus = BYPASSING and spec_counter = 2.0 and obstacle = CLEAR) => pre(engineMot = eng_BWD and steeringMot = CENTER) and spec_counter = 3.0);
+  ok48 = (pre(carStatus = BYPASSING and spec_counter = 2.0 and obstacle = CLEAR) => pre(engineMot = eng_BWD and steeringMot = CENTER) and spec_counter = 3.0);
 
-  ok43 = (carStatus = BYPASSING and spec_counter = 3.0) => (Stop and sensorMot = FWD);
+  ok49 = (carStatus = BYPASSING and spec_counter = 3.0) => (Stop and sensorMot = FWD);
 
-  ok44 = (pre(carStatus = BYPASSING and spec_counter = 3.0 and obstacle = CLEAR) => (spec_counter = 4.0));
+  ok50 = (pre(carStatus = BYPASSING and spec_counter = 3.0 and obstacle = CLEAR) => (spec_counter = 4.0));
 
-  ok45 = (pre(carStatus = BYPASSING and spec_counter = 4.0 and obstacle = CLEAR) => pre(engineMot = BYPASS_FWD and steeringMot = MAX_LEFT) and (spec_counter = 5.0));
+  ok51 = (pre(carStatus = BYPASSING and spec_counter = 4.0 and obstacle = CLEAR) => pre(engineMot = BYPASS_FWD and steeringMot = MAX_LEFT) and (spec_counter = 5.0));
 
-  ok46 = (pre(carStatus = BYPASSING and spec_counter = 5.0 and obstacle = CLEAR and sideSensor = TOO_CLOSE) => pre(engineMot = eng_FWD and steeringMot = CENTER) and (spec_counter = 6.0));
+  ok52 = (pre(carStatus = BYPASSING and spec_counter = 5.0 and obstacle = CLEAR and sideSensor = TOO_CLOSE) => pre(engineMot = eng_FWD and steeringMot = CENTER) and (spec_counter = 6.0));
 
-  ok47 = (pre(carStatus = BYPASSING and spec_counter = 5.0 and obstacle = CLEAR and sideSensor <> TOO_CLOSE) => pre(Stop and steeringMot = CENTER) and (spec_counter = 6.0));
+  ok53 = (pre(carStatus = BYPASSING and spec_counter = 5.0 and obstacle = CLEAR and sideSensor <> TOO_CLOSE) => pre(Stop and steeringMot = CENTER) and (spec_counter = 6.0));
 
-  ok48 = (pre(carStatus = BYPASSING and spec_counter = 6.0 and obstacle = CLEAR) => pre(engineMot = PARKING_FWD and steeringMot = MAX_RIGHT) and (spec_counter = 7.0 and spec_obstacleCounter = 0.0));
+  ok54 = (pre(carStatus = BYPASSING and spec_counter = 6.0 and obstacle = CLEAR) => pre(engineMot = PARKING_FWD and steeringMot = MAX_RIGHT) and (spec_counter = 7.0 and spec_obstacleCounter = 0.0));
 
-  ok49 = (pre(movingNextToObstacle and (weGotSideSensorSeekingValues or weGotRearSideSensorSeekingValues) and obstacle = CLEAR and spec_obstacleCounter < 3.0) => pre(keepCounterValue) and spec_obstacleCounter = 0.0);
+  ok55 = (pre(movingNextToObstacle and (weGotSideSensorSeekingValues or weGotRearSideSensorSeekingValues) and obstacle = CLEAR and spec_obstacleCounter < 3.0) => pre(keepCounterValue) and spec_obstacleCounter = 0.0);
 
-  ok50 = (pre(movingNextToObstacle and weGotSideSensorMeasuringValues and weGotRearSideSensorMeasuringValues and obstacle = CLEAR and spec_obstacleCounter < 6.0) => pre(keepCounterValue) and spec_obstacleCounter = pre(spec_obstacleCounter) + 1.0);
+  ok56 = (pre(movingNextToObstacle and weGotSideSensorMeasuringValues and weGotRearSideSensorMeasuringValues and obstacle = CLEAR and spec_obstacleCounter < 6.0) => pre(keepCounterValue) and spec_obstacleCounter = pre(spec_obstacleCounter) + 1.0);
 
-  ok51 = (pre(movingNextToObstacle and obstacle = CLEAR and spec_obstacleCounter = 6.0) => pre(Stop and sensorMot = BWD) and (spec_counter = 8.0));
+  ok57 = (pre(movingNextToObstacle and obstacle = CLEAR and spec_obstacleCounter = 6.0) => pre(Stop and sensorMot = BWD) and (spec_counter = 8.0));
 
-  ok52 = (pre(carStatus = BYPASSING and spec_counter = 8.0 and obstacle = CLEAR) => pre(engineMot = PARKING_BWD and steeringMot = MAX_RIGHT) and (spec_counter = 9.0));
+  ok58 = (pre(carStatus = BYPASSING and spec_counter = 8.0 and obstacle = CLEAR) => pre(engineMot = PARKING_BWD and steeringMot = MAX_RIGHT) and (spec_counter = 9.0));
 
-  ok53 = (pre(carStatus = BYPASSING and spec_counter = 9.0 and obstacle = CLEAR) => pre(engineMot = PARKING_BWD and steeringMot =MAX_LEFT) and (spec_counter = 10.0));
+  ok59 = (pre(carStatus = BYPASSING and spec_counter = 9.0 and obstacle = CLEAR) => pre(engineMot = PARKING_BWD and steeringMot =MAX_LEFT) and (spec_counter = 10.0));
 
-  ok54 = (pre(carStatus = BYPASSING and spec_counter = 10.0) => pre(sensorMot = FWD and Stop) and (carStatus = SEEKING_FOR_PS));
+  ok60 = (pre(carStatus = BYPASSING and spec_counter = 10.0) => pre(sensorMot = FWD and Stop) and (carStatus = SEEKING_FOR_PS));
 
-  ok55 = (pre(carStatus = BYPASSING) => ((carStatus = SEEKING_FOR_PS) or (carStatus = BYPASSING)));
+  ok61 = (pre(carStatus = BYPASSING) => ((carStatus = SEEKING_FOR_PS) or (carStatus = BYPASSING)));
 
-  ok56 = respondsTo((carStatus = BYPASSING), (carStatus = SEEKING_FOR_PS));
+  ok62 = Initially(responded7);
+  ok63 = responded7 => pre((carStatus = SEEKING_FOR_PS) or responded7 and (not (carStatus = BYPASSING)));
+  ok64 = pre((carStatus = SEEKING_FOR_PS) or responded7 and (not (carStatus = BYPASSING))) => responded7;
+
+  counter_r7 = 0.0 -> if responded7 then 0.0 else pre(counter_r7) + 1.0;
+  ok65 = counter_r7 < K;
+  --ok62 = respondsTo((carStatus = BYPASSING), (carStatus = SEEKING_FOR_PS));
 
   --assert respondsTo((carStatus = BYPASSING and engineMot = eng_FWD), (carStatus = SEEKING_FOR_PS));
 
-  responded4 = true -> (pre((carStatus = SEEKING_FOR_PS) or responded4 and (not (carStatus = BYPASSING and engineMot = eng_FWD))));
+  assert Initially(responded4);
+  assert responded4 => (pre((carStatus = SEEKING_FOR_PS) or responded4 and (not (carStatus = BYPASSING and engineMot = eng_FWD))));
+  assert (pre((carStatus = SEEKING_FOR_PS) or responded4 and (not (carStatus = BYPASSING and engineMot = eng_FWD)))) => responded4;
 
   counter_r4 = 0.0 -> if (responded4) then 0.0 else pre(counter_r4) + 1.0;
   assert counter_r4 < K;
@@ -301,6 +326,15 @@ let
   --%PROPERTY ok54;
   --%PROPERTY ok55;
   --%PROPERTY ok56;
+  --%PROPERTY ok57;
+  --%PROPERTY ok58;
+  --%PROPERTY ok59;
+  --%PROPERTY ok60;
+  --%PROPERTY ok61;
+  --%PROPERTY ok62;
+  --%PROPERTY ok63;
+  --%PROPERTY ok64;
+  --%PROPERTY ok65;
 
   --%REALIZABLE obstacle, sideSensor, rearSideSensor;
 tel;

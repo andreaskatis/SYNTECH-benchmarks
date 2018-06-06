@@ -32,11 +32,10 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_LeftMotor; HeadMotor : sys_HeadMotor; spec_nextMoveMode : sys_spec_nextMoveMode; spec_specState : sys_spec_specState; spec_turnState : sys_spec_turnState; spec_nextHead : env_Heading) returns ();
+node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_LeftMotor; HeadMotor : sys_HeadMotor; spec_nextMoveMode : sys_spec_nextMoveMode; spec_specState : sys_spec_specState; spec_turnState : sys_spec_turnState; spec_nextHead : env_Heading; responded1, responded2, responded3 : bool) returns ();
 var
-  responded1, responded2 : bool;
-  counter_r1, counter_r2, counter_gf1 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31 : bool;
+  counter_r1, counter_r2, counter_r3, counter_gf1 : real;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40 : bool;
 let
 
   --inital state
@@ -57,61 +56,75 @@ let
 
 
   -- motors - control
-  ok7 = (((pre(spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD) => (LeftMotor = FWD and RightMotor = BWD)) and ((LeftMotor = FWD and RightMotor = BWD) => (pre(spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD)));
-  ok8 = ((pre(spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD) => (LeftMotor = BWD and RightMotor = FWD)) and ((LeftMotor = BWD and RightMotor = FWD) => (pre(spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD));
-  ok9 = (spec_nextMoveMode = snMM_BWD => (pre(spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD)));
-  ok10 = (pre(spec_nextMoveMode = snMM_BWD) => (spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD));
+  ok7 = ((pre(spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD) => (LeftMotor = FWD and RightMotor = BWD));
+  ok8 = ((LeftMotor = FWD and RightMotor = BWD) => (pre(spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD));
+  ok9 = ((pre(spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD) => (LeftMotor = BWD and RightMotor = FWD));
+  ok10 = ((LeftMotor = BWD and RightMotor = FWD) => (pre(spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD));
+  ok11 = (spec_nextMoveMode = snMM_BWD => (pre(spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD)));
+  ok12 = (pre(spec_nextMoveMode = snMM_BWD) => (spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD));
 
   --q - automaton
-  ok11 = (pre(spec_specState = Q0 and spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD) => spec_specState = Q1;
-  ok12 = (pre(spec_specState = Q1 and spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD) => spec_specState = Q2;
-  ok13 = (not (pre(spec_specState = Q2 and spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD));
-  ok14 = (pre(spec_specState = Q1) and spec_nextMoveMode = snMM_BWD) => spec_specState = Q1;
-  ok15 = (pre(spec_specState = Q2) and spec_nextMoveMode = snMM_FWD) => spec_specState = Q2;
-  ok16 = true -> (pre(spec_nextMoveMode = snMM_TURN_LEFT) => spec_specState = Q0);
+  ok13 = (pre(spec_specState = Q0 and spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD) => spec_specState = Q1;
+  ok14 = (pre(spec_specState = Q1 and spec_nextMoveMode = snMM_BWD) and spec_nextMoveMode = snMM_FWD) => spec_specState = Q2;
+  ok15 = (not (pre(spec_specState = Q2 and spec_nextMoveMode = snMM_FWD) and spec_nextMoveMode = snMM_BWD));
+  ok16 = (pre(spec_specState = Q1) and spec_nextMoveMode = snMM_BWD) => spec_specState = Q1;
+  ok17 = (pre(spec_specState = Q2) and spec_nextMoveMode = snMM_FWD) => spec_specState = Q2;
+  ok18 = (pre(spec_nextMoveMode = snMM_TURN_LEFT) => spec_specState = Q0);
 
   --compass - handling
-  ok17 = (pre(Button = PRESSED) => spec_nextHead = Heading);
-  ok18 = (pre(Button = FREE) => spec_nextHead = pre(spec_nextHead));
+  ok19 = (pre(Button = PRESSED) => spec_nextHead = Heading);
+  ok20 = (pre(Button = FREE) => spec_nextHead = pre(spec_nextHead));
 
 
   --trigger to start looking for saved direction
-  ok19 = respondsTo((Noise = NOISE), (Heading = spec_nextHead));
+  ok21 = Initially(responded3);
+  ok22 = responded3 => pre((Heading = spec_nextHead) or responded3 and (not (Noise = NOISE)));
+  ok23 = pre((Heading = spec_nextHead) or responded3 and (not (Noise = NOISE))) => responded3;
+
+  counter_r3 = 0.0 -> if responded3 then 0.0 else pre(counter_r3) + 1.0;
+  ok24 = counter_r3 < K;
+  --ok19 = respondsTo((Noise = NOISE), (Heading = spec_nextHead));
 
   --turning - automaton
-  ok20 = (spec_turnState = T0 => pre(spec_turnState = T0 or spec_turnState = T3));
-  ok21 = (pre(spec_turnState = T0 and (not (spec_nextMoveMode = snMM_TURN_LEFT))) => spec_turnState = T0);
-  ok22 = (pre(spec_nextMoveMode = snMM_TURN_LEFT and (true -> pre(spec_nextMoveMode = snMM_FWD)) and spec_turnState = T0) => spec_turnState = T1);
-  ok23 = (pre(spec_turnState = T1) => (spec_turnState = T2 and pre(spec_nextMoveMode = snMM_TURN_LEFT)));
-  ok24 = (pre(spec_turnState = T2 and spec_nextMoveMode = snMM_TURN_LEFT) => spec_turnState = T1);
-  ok25 = (pre(spec_turnState = T2 and spec_nextMoveMode = snMM_FWD) => spec_turnState = T3);
-  ok26 = (pre(spec_turnState = T3 and spec_nextMoveMode = snMM_FWD) => spec_turnState = T0);
-  ok27 = (pre(spec_turnState = T3 and spec_nextMoveMode <> snMM_FWD) => spec_turnState = T2);
+  ok25 = (spec_turnState = T0 => pre(spec_turnState = T0 or spec_turnState = T3));
+  ok26 = (pre(spec_turnState = T0 and (not (spec_nextMoveMode = snMM_TURN_LEFT))) => spec_turnState = T0);
+  ok27 = (pre(spec_nextMoveMode = snMM_TURN_LEFT and (true -> pre(spec_nextMoveMode = snMM_FWD)) and spec_turnState = T0) => spec_turnState = T1);
+  ok28 = (pre(spec_turnState = T1) => (spec_turnState = T2 and pre(spec_nextMoveMode = snMM_TURN_LEFT)));
+  ok29 = (pre(spec_turnState = T2 and spec_nextMoveMode = snMM_TURN_LEFT) => spec_turnState = T1);
+  ok30 = (pre(spec_turnState = T2 and spec_nextMoveMode = snMM_FWD) => spec_turnState = T3);
+  ok31 = (pre(spec_turnState = T3 and spec_nextMoveMode = snMM_FWD) => spec_turnState = T0);
+  ok32 = (pre(spec_turnState = T3 and spec_nextMoveMode <> snMM_FWD) => spec_turnState = T2);
 
   --movement - turning
-  ok28 = ((pre(spec_turnState = T0) and spec_turnState = T1) => (LeftMotor = CALIB_TURN and RightMotor = CALIB_TURN)) and ((LeftMotor = CALIB_TURN and RightMotor = CALIB_TURN) => (pre(spec_turnState = T0) and spec_turnState = T1));
-  ok29 = true -> ((spec_turnState = T2 => pre(LeftMotor = FWD and RightMotor = TURN_FWD)) and (pre(LeftMotor = FWD and RightMotor = TURN_FWD) => spec_turnState = T2));
-  ok30 = (spec_turnState = T2 => (LeftMotor = BWD and RightMotor = TURN_BWD)) and ((LeftMotor = BWD and RightMotor = TURN_BWD) => spec_turnState = T2);
-  ok31 = true -> (((pre(spec_turnState = T3) and spec_turnState = T0) => (LeftMotor = CALIB_FWD and RightMotor = CALIB_FWD)) and ((LeftMotor = CALIB_FWD and RightMotor = CALIB_FWD) => (pre(spec_turnState = T3) and spec_turnState = T0)));
+  ok33 = ((pre(spec_turnState = T0) and spec_turnState = T1) => (LeftMotor = CALIB_TURN and RightMotor = CALIB_TURN));
+  ok34 = ((LeftMotor = CALIB_TURN and RightMotor = CALIB_TURN) => (pre(spec_turnState = T0) and spec_turnState = T1));
+  ok35 = (spec_turnState = T2 => pre(LeftMotor = FWD and RightMotor = TURN_FWD));
+  ok36 = (pre(LeftMotor = FWD and RightMotor = TURN_FWD) => spec_turnState = T2);
+  ok37 = (spec_turnState = T2 => (LeftMotor = BWD and RightMotor = TURN_BWD));
+  ok38 = ((LeftMotor = BWD and RightMotor = TURN_BWD) => spec_turnState = T2);
+  ok39 = ((pre(spec_turnState = T3) and spec_turnState = T0) => (LeftMotor = CALIB_FWD and RightMotor = CALIB_FWD));
+  ok40 = ((LeftMotor = CALIB_FWD and RightMotor = CALIB_FWD) => (pre(spec_turnState = T3) and spec_turnState = T0));
 
   --environment - assumptions
   assert ((true -> pre(spec_nextMoveMode = snMM_FWD)) and pre(Obstacle = BLOCKED)) => Obstacle = BLOCKED;
   assert ((true -> pre(spec_nextMoveMode = snMM_BWD)) and pre(Obstacle = CLEAR)) => Obstacle <> BLOCKED;
   --assert respondsTo((spec_turnState = T1), (pre(Obstacle = CLEAR) and (Obstacle = CLEAR)));
 
-  responded1 = true -> (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (spec_turnState = T1))));
+  assert Initially(responded1);
+  assert responded1 => (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (spec_turnState = T1))));
+  assert (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (spec_turnState = T1)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
   assert (pre(spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD)) => Heading = pre(Heading);
   --assert respondsTo((spec_nextMoveMode = snMM_TURN_LEFT), (Heading = spec_nextHead or spec_nextMoveMode <> snMM_TURN_LEFT));
 
-  responded2 = true -> (pre((Heading = spec_nextHead or spec_nextMoveMode <> snMM_TURN_LEFT) or responded2 and (not (spec_nextMoveMode = snMM_TURN_LEFT))));
+  assert Initially(responded2);
+  assert responded2 => (pre((Heading = spec_nextHead or spec_nextMoveMode <> snMM_TURN_LEFT) or responded2 and (not (spec_nextMoveMode = snMM_TURN_LEFT))));
+  assert (pre((Heading = spec_nextHead or spec_nextMoveMode <> snMM_TURN_LEFT) or responded2 and (not (spec_nextMoveMode = snMM_TURN_LEFT)))) => responded2;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
-
   assert counter_r2 < K;
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9 and ok10 and ok11 and ok12 and ok13 and ok14 and ok15 and ok16 and ok17 and ok18 and ok19 and ok20 and ok21 and ok22 and ok23 and ok24 and ok25 and ok26 and ok27 and ok28 and ok29 and ok30 and ok31;
@@ -147,6 +160,15 @@ let
   --%PROPERTY ok29;
   --%PROPERTY ok30;
   --%PROPERTY ok31;
+  --%PROPERTY ok32;
+  --%PROPERTY ok33;
+  --%PROPERTY ok34;
+  --%PROPERTY ok35;
+  --%PROPERTY ok36;
+  --%PROPERTY ok37;
+  --%PROPERTY ok38;
+  --%PROPERTY ok39;
+  --%PROPERTY ok40;
 
   --%REALIZABLE Obstacle, Noise, Heading, Button;
 tel;

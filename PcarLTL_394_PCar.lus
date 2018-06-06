@@ -6,6 +6,11 @@ type env_sideSense = enum {IS_CLEAR, P_O, IS_BLOCKED};
 type sys_throttle = enum {FWD, BWD, STOP};
 type sys_steer = enum {RIGHT, LEFT, CENTER};
 
+node Initially(i: bool) returns (o: bool);
+let
+  o = i -> true;
+tel;
+
 node respondsTo(trigger, response : bool) returns (ok : bool);
 var
   responded : bool;
@@ -16,13 +21,19 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node PCar(obstacle : env_obstacle; sideSense : env_sideSense; throttle : sys_throttle; steer : sys_steer) returns ();
+node PCar(obstacle : env_obstacle; sideSense : env_sideSense; throttle : sys_throttle; steer : sys_steer; responded1 : bool) returns ();
 var
-  counter_gf1 : real;
+  counter_r1, counter_gf1 : real;
   ok1, ok2, ok3 : bool;
 let
 
-  assert respondsTo(((throttle = FWD) and (steer = CENTER) and (sideSense = IS_BLOCKED)),(sideSense=IS_CLEAR));
+  assert Initially(responded1);
+  assert pre(sideSense = IS_CLEAR or responded1 and (not (throttle = FWD and steer = CENTER and sideSense = IS_BLOCKED))) => responded1;
+  assert responded1 => pre(sideSense = IS_CLEAR or responded1 and (not (throttle = FWD and steer = CENTER and sideSense = IS_BLOCKED)));
+  counter_r1 = 0.0 -> if responded1 then 0.0 else pre(counter_r1) + 1.0;
+  assert counter_r1 < K;
+
+  --assert respondsTo(((throttle = FWD) and (steer = CENTER) and (sideSense = IS_BLOCKED)),(sideSense=IS_CLEAR));
   assert true -> (pre(throttle) = BWD => obstacle = CLEAR);
 
   counter_gf1 = 0.0 -> if (throttle = FWD and steer = CENTER) then 0.0 else pre(counter_gf1) + 1.0;

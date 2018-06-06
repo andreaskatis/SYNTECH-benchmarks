@@ -25,44 +25,46 @@ let
   o = i -> true;
 tel;
 
-node ColorSort(color : env_color; detect : env_color; ack_ver, ack_hor, ack_bot : env_ack_ver; speedButton : env_speedButton; verMot, horMot : env_ack_ver; botMot : sys_botMot; motSpeed : sys_motSpeed; spec_state_seek : sys_spec_state_seek; spec_state_return : sys_spec_state_return; spec_currentColor : env_color; spec_dropping : bool; spec_speedButtonValidPressed, spec_prevBotMotReturn, spec_prevBotMotSeek, spec_waiting_ack_ver_mot, spec_waiting_ack_hor_mot : bool) returns ();
+node ColorSort(color : env_color; detect : env_color; ack_ver, ack_hor, ack_bot : env_ack_ver; speedButton : env_speedButton; verMot, horMot : env_ack_ver; botMot : sys_botMot; motSpeed : sys_motSpeed; spec_state_seek : sys_spec_state_seek; spec_state_return : sys_spec_state_return; spec_currentColor : env_color; spec_dropping : bool; spec_speedButtonValidPressed, spec_prevBotMotReturn, spec_prevBotMotSeek, spec_waiting_ack_ver_mot, spec_waiting_ack_hor_mot : bool; responded1, responded2, responded3, responded4 : bool) returns ();
 var
-  responded1, responded2, responded3, responded4 : bool;
   counter_r1, counter_r2, counter_r3, counter_r4, counter_gf1, counter_gf2, counter_gf3 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38 : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43 : bool;
   allsleep, nonemove, onlybotmoves : bool;
 let
   allsleep = (verMot = SLEEP and horMot = SLEEP and botMot = STOP);
   nonemove = (ack_ver = SLEEP and ack_hor = SLEEP and ack_bot = SLEEP);
   onlybotmoves = ack_ver = SLEEP and ack_hor = SLEEP and ack_bot = MOVE;
 
-  ok1 = (spec_prevBotMotReturn => pre(botMot = RETURN)) and (pre(botMot = RETURN) => spec_prevBotMotReturn);
+  ok1 = (spec_prevBotMotReturn => pre(botMot = RETURN));
+  ok2 = (pre(botMot = RETURN) => spec_prevBotMotReturn);
 
-  ok2 = (spec_prevBotMotSeek => pre(botMot = SEEK)) and (pre(botMot = SEEK) => spec_prevBotMotSeek);
+  ok3 = (spec_prevBotMotSeek => pre(botMot = SEEK));
+  ok4 = (pre(botMot = SEEK) => spec_prevBotMotSeek);
 
-  ok3 = verMot = MOVE => (botMot = STOP and horMot = SLEEP);
-  ok4 = horMot = MOVE => (botMot = STOP and verMot = SLEEP);
-  ok5 = botMot <> STOP => (verMot = SLEEP and horMot = SLEEP);
-  ok6 = pre(verMot = SLEEP) => (spec_currentColor = pre(spec_currentColor));
+  ok5 = verMot = MOVE => (botMot = STOP and horMot = SLEEP);
+  ok6 = horMot = MOVE => (botMot = STOP and verMot = SLEEP);
+  ok7 = botMot <> STOP => (verMot = SLEEP and horMot = SLEEP);
+  ok8 = pre(verMot = SLEEP) => (spec_currentColor = pre(spec_currentColor));
 
 
-  ok7 = ((spec_dropping = pre(spec_dropping)) => (pre(verMot = SLEEP and (not (spec_prevBotMotReturn and ack_bot = SLEEP))))) and ((pre(verMot = SLEEP and (not (spec_prevBotMotReturn and ack_bot = SLEEP)))) => (spec_dropping = pre(spec_dropping)));
+  ok9 = ((spec_dropping = pre(spec_dropping)) => (pre(verMot = SLEEP and (not (spec_prevBotMotReturn and ack_bot = SLEEP)))));
+  ok10 = ((pre(verMot = SLEEP and (not (spec_prevBotMotReturn and ack_bot = SLEEP)))) => (spec_dropping = pre(spec_dropping)));
 
-  ok8 = (ack_ver = MOVE or ack_hor = MOVE) => allsleep;
+  ok11 = (ack_ver = MOVE or ack_hor = MOVE) => allsleep;
 
   assert (not spec_dropping) => nonemove;
 
   --running the robot
 
-  ok9 = (color = BLACK and (not spec_dropping)) => allsleep;
+  ok12 = (color = BLACK and (not spec_dropping)) => allsleep;
 
-  ok10 = pre(color <> BLACK and (not spec_dropping)) => (pre(verMot = MOVE) and (spec_currentColor = pre(color)));
+  ok13 = pre(color <> BLACK and (not spec_dropping)) => (pre(verMot = MOVE) and (spec_currentColor = pre(color)));
 
-  ok11 = (nonemove and spec_dropping and pre(ack_hor = MOVE)) => botMot = SEEK;
+  ok14 = (nonemove and spec_dropping and pre(ack_hor = MOVE)) => botMot = SEEK;
 
-  ok12 = Initially(spec_state_seek = S0);
+  ok15 = Initially(spec_state_seek = S0);
 
-  ok13 = (pre(spec_state_seek = S0 and ((not (spec_prevBotMotSeek and ack_bot = MOVE)) or ((spec_prevBotMotSeek and detect = spec_currentColor) and (spec_prevBotMotSeek and ack_bot = MOVE)))) and spec_state_seek = S0) or
+  ok16 = (pre(spec_state_seek = S0 and ((not (spec_prevBotMotSeek and ack_bot = MOVE)) or ((spec_prevBotMotSeek and detect = spec_currentColor) and (spec_prevBotMotSeek and ack_bot = MOVE)))) and spec_state_seek = S0) or
   (pre(spec_state_seek = S0 and ((not (spec_prevBotMotSeek and detect = spec_currentColor)) and (spec_dropping and onlybotmoves and detect <> spec_currentColor => botMot = SEEK) and (spec_prevBotMotSeek and ack_bot = MOVE))) and spec_state_seek = S1) or
   (pre(spec_state_seek = S0 and ((not (spec_prevBotMotSeek and detect = spec_currentColor)) and (not spec_dropping and onlybotmoves and detect <> spec_currentColor => botMot = SEEK) and (spec_prevBotMotSeek and ack_bot = MOVE))) and spec_state_seek = S3) or
   (pre(spec_state_seek = S1 and (spec_prevBotMotSeek and detect = spec_currentColor)) and spec_state_seek = S0) or
@@ -74,15 +76,16 @@ let
 
   counter_gf1 = 0.0 -> if (spec_state_seek = S0 or spec_state_seek = S1 or spec_state_seek = S3) then 0.0 else pre(counter_gf1) + 1.0;
 
-  ok14 = counter_gf1 < K;
+  ok17 = counter_gf1 < K;
 
-  ok15 = ((spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)) => horMot = MOVE) and (horMot = MOVE => (spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)));
+  ok18 = ((spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)) => horMot = MOVE);
+  ok19 = (horMot = MOVE => (spec_dropping and onlybotmoves and detect = spec_currentColor and pre(botMot = SEEK)));
 
-  ok16 = (nonemove and pre(ack_hor = MOVE) and spec_dropping) => botMot = RETURN;
+  ok20 = (nonemove and pre(ack_hor = MOVE) and spec_dropping) => botMot = RETURN;
 
-  ok17 = Initially(spec_state_return = retS0);
+  ok21 = Initially(spec_state_return = retS0);
 
-  ok18 = (pre(spec_state_return = retS0 and ((not (spec_prevBotMotReturn and ack_bot = MOVE)) and (not (spec_prevBotMotReturn and ack_bot = SLEEP))) or ((spec_prevBotMotReturn and ack_bot = SLEEP))) and spec_state_return = retS0) or
+  ok22 = (pre(spec_state_return = retS0 and ((not (spec_prevBotMotReturn and ack_bot = MOVE)) and (not (spec_prevBotMotReturn and ack_bot = SLEEP))) or ((spec_prevBotMotReturn and ack_bot = SLEEP))) and spec_state_return = retS0) or
   (pre(spec_state_return = retS0 and ((spec_prevBotMotReturn and ack_bot = MOVE) and (not (spec_dropping and onlybotmoves => botMot = RETURN)) and (not (spec_prevBotMotReturn and ack_bot = SLEEP)))) and spec_state_return = retS1) or
   (pre(spec_state_return = retS0 and ((spec_prevBotMotReturn and ack_bot = MOVE) and (spec_dropping and onlybotmoves => botMot = RETURN) and (not (spec_prevBotMotReturn and ack_bot = SLEEP)))) and spec_state_return = retS2) or
   (pre(spec_state_return = retS1) and spec_state_return = retS1) or
@@ -91,65 +94,74 @@ let
   (pre(spec_state_return = retS2 and (spec_dropping and onlybotmoves => botMot = RETURN) and (not (spec_prevBotMotReturn and ack_bot = SLEEP))) and spec_state_return = retS2);
 
   counter_gf2 = 0.0 -> if (spec_state_return = retS0 or spec_state_return = retS2) then 0.0 else pre(counter_gf2) + 1.0;
+  ok23 = counter_gf2 < K;
 
-  ok19 = counter_gf2 < K;
-
-  ok20 = (spec_prevBotMotReturn and ack_bot = SLEEP) => allsleep;
+  ok24 = (spec_prevBotMotReturn and ack_bot = SLEEP) => allsleep;
 
   --speed button
 
-  ok21 = Initially(motSpeed = LEVEL1 and (not spec_dropping));
+  ok25 = Initially(motSpeed = LEVEL1 and (not spec_dropping));
 
-  ok22 = ((speedButton = PRESS and pre(speedButton = RELEASE)) => spec_speedButtonValidPressed) and (spec_speedButtonValidPressed => (speedButton = PRESS and pre(speedButton = RELEASE)));
+  ok26 = ((speedButton = PRESS and pre(speedButton = RELEASE)) => spec_speedButtonValidPressed);
+  ok27 = (spec_speedButtonValidPressed => (speedButton = PRESS and pre(speedButton = RELEASE)));
 
-  ok23 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
+  ok28 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL2;
 
-  ok24 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
+  ok29 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL2)) => motSpeed = LEVEL3;
 
-  ok25 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
+  ok30 = (spec_speedButtonValidPressed and pre(motSpeed = LEVEL3)) => motSpeed = LEVEL1;
 
-  ok26 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
+  ok31 = ((not spec_speedButtonValidPressed) and pre(motSpeed = LEVEL1)) => motSpeed = LEVEL1;
 
-  ok27 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL2))) => motSpeed = LEVEL2;
+  ok32 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL2))) => motSpeed = LEVEL2;
 
-  ok28 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL3))) => motSpeed = LEVEL3;
+  ok33 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL3))) => motSpeed = LEVEL3;
 
-  ok29 = Initially((not spec_waiting_ack_ver_mot));
+  ok34 = Initially((not spec_waiting_ack_ver_mot));
 
-  ok30 = pre((not spec_waiting_ack_ver_mot) and verMot <> MOVE) => (not spec_waiting_ack_ver_mot);
+  ok35 = pre((not spec_waiting_ack_ver_mot) and verMot <> MOVE) => (not spec_waiting_ack_ver_mot);
 
-  ok31 = pre((not spec_waiting_ack_ver_mot) and verMot = MOVE) => spec_waiting_ack_ver_mot;
+  ok36 = pre((not spec_waiting_ack_ver_mot) and verMot = MOVE) => spec_waiting_ack_ver_mot;
 
-  ok32 = pre(spec_waiting_ack_ver_mot and ack_ver = SLEEP) => (not spec_waiting_ack_ver_mot);
+  ok37 = pre(spec_waiting_ack_ver_mot and ack_ver = SLEEP) => (not spec_waiting_ack_ver_mot);
 
-  ok33 = pre(spec_waiting_ack_ver_mot and ack_ver <> SLEEP) => spec_waiting_ack_ver_mot;
+  ok38 = pre(spec_waiting_ack_ver_mot and ack_ver <> SLEEP) => spec_waiting_ack_ver_mot;
 
   assert (not spec_waiting_ack_ver_mot) => ack_ver = SLEEP;
   --assert respondsTo(spec_waiting_ack_ver_mot, (ack_ver = SLEEP));
 
-  responded1 = true -> (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot))));
+  assert Initially(responded1);
+  assert responded1 => (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot))));
+  assert (pre((ack_ver = SLEEP) or responded1 and (not (spec_waiting_ack_ver_mot)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
-  ok34 = Initially((not spec_waiting_ack_hor_mot));
+  ok39 = Initially((not spec_waiting_ack_hor_mot));
 
-  ok35 = pre((not spec_waiting_ack_hor_mot) and horMot <> MOVE) => (not spec_waiting_ack_hor_mot);
+  ok40 = pre((not spec_waiting_ack_hor_mot) and horMot <> MOVE) => (not spec_waiting_ack_hor_mot);
 
-  ok36 = pre((not spec_waiting_ack_hor_mot) and horMot = MOVE) => spec_waiting_ack_hor_mot;
+  ok41 = pre((not spec_waiting_ack_hor_mot) and horMot = MOVE) => spec_waiting_ack_hor_mot;
 
-  ok37 = pre(spec_waiting_ack_hor_mot and ack_hor = SLEEP) => (not spec_waiting_ack_hor_mot);
+  ok42 = pre(spec_waiting_ack_hor_mot and ack_hor = SLEEP) => (not spec_waiting_ack_hor_mot);
 
-  ok38 = pre(spec_waiting_ack_hor_mot and ack_hor <> SLEEP) => spec_waiting_ack_hor_mot;
+  ok43 = pre(spec_waiting_ack_hor_mot and ack_hor <> SLEEP) => spec_waiting_ack_hor_mot;
 
   --assert respondsTo(ack_ver = MOVE, (ack_ver = SLEEP));
   --assert respondsTo(ack_hor = MOVE, (ack_hor = SLEEP));
   --assert respondsTo(ack_bot = MOVE, (ack_bot = SLEEP));
 
-  responded2 = true -> (pre((ack_ver = SLEEP) or responded2 and (not (ack_ver = MOVE))));
-  responded3 = true -> (pre((ack_hor = SLEEP) or responded3 and (not (ack_hor = MOVE))));
-  responded4 = true -> (pre((ack_bot = SLEEP) or responded4 and (not (ack_bot = MOVE))));
+  assert Initially(responded2);
+  assert responded2 => (pre((ack_ver = SLEEP) or responded2 and (not (ack_ver = MOVE))));
+  assert (pre((ack_ver = SLEEP) or responded2 and (not (ack_ver = MOVE)))) => responded2;
+
+  assert Initially(responded3);
+  assert responded3 => (pre((ack_hor = SLEEP) or responded3 and (not (ack_hor = MOVE))));
+  assert (pre((ack_hor = SLEEP) or responded3 and (not (ack_hor = MOVE)))) => responded3;
+
+  assert Initially(responded4);
+  assert responded4 => (pre((ack_bot = SLEEP) or responded4 and (not (ack_bot = MOVE))));
+  assert (pre((ack_bot = SLEEP) or responded4 and (not (ack_bot = MOVE)))) => responded4;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
   counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r3) + 1.0;
@@ -203,6 +215,11 @@ let
   --%PROPERTY ok36;
   --%PROPERTY ok37;
   --%PROPERTY ok38;
+  --%PROPERTY ok39;
+  --%PROPERTY ok40;
+  --%PROPERTY ok41;
+  --%PROPERTY ok42;
+  --%PROPERTY ok43;
 
   --%REALIZABLE color, detect, ack_ver, ack_hor, ack_bot, speedButton;
 tel;

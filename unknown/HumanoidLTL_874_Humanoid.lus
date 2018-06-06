@@ -32,11 +32,10 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_LeftMotor; HeadMotor : sys_HeadMotor; nextMoveMode : sys_nextMoveMode; specState : sys_specState; turnState : sys_turnState; nextHead : env_Heading) returns ();
+node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_LeftMotor; HeadMotor : sys_HeadMotor; nextMoveMode : sys_nextMoveMode; specState : sys_specState; turnState : sys_turnState; nextHead : env_Heading; responded1, responded2, responded3, responded4 : bool) returns ();
 var
-  responded1, responded2, responded3 : bool;
-  counter_r1, counter_r2, counter_r3, counter_gf1 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43, ok44 : bool;
+  counter_r1, counter_r2, counter_r3, counter_r4, counter_gf1 : real;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40, ok41, ok42, ok43, ok44, ok45, ok46, ok47 : bool;
 let
 
   --inital state
@@ -79,69 +78,78 @@ let
 
 
   --trigger to start looking for saved direction
-  ok23 = respondsTo((Noise = NOISE), (Heading = nextHead));
+  ok23 = Initially(responded4);
+  ok24 = responded4 => pre((Heading = nextHead) or responded4 and (not (Noise=  NOISE)));
+  ok25 = pre((Heading = nextHead) or responded4 and (not (Noise=  NOISE))) => responded4;
+
+  counter_r4 = 0.0 -> if responded4 then 0.0 else pre(counter_r4) + 1.0;
+  ok26 = counter_r4 < K;
+  --ok23 = respondsTo((Noise = NOISE), (Heading = nextHead));
 
   --don't go the long path
-  ok24 = (((nextHead = N and Heading = EA) or (nextHead = EA and Heading = SO) or (nextHead = SO and Heading = W) or (nextHead = W and Heading = N)) and (turnState = T0)) => nextMoveMode <> nMM_TURN_RIGHT;
+  ok27 = (((nextHead = N and Heading = EA) or (nextHead = EA and Heading = SO) or (nextHead = SO and Heading = W) or (nextHead = W and Heading = N)) and (turnState = T0)) => nextMoveMode <> nMM_TURN_RIGHT;
 
-  ok25 = (((nextHead = EA and Heading = N) or (nextHead = SO and Heading = EA) or (nextHead = W and Heading = SO) or (nextHead = N and Heading = W)) and (turnState = T0)) => nextMoveMode <> nMM_TURN_LEFT;
+  ok28 = (((nextHead = EA and Heading = N) or (nextHead = SO and Heading = EA) or (nextHead = W and Heading = SO) or (nextHead = N and Heading = W)) and (turnState = T0)) => nextMoveMode <> nMM_TURN_LEFT;
 
   --turning - automaton
-  ok26 = (turnState = T0 => pre(turnState = T0 or turnState = T3));
-  ok27 = (pre(turnState = T0 and (not (nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT))) => turnState = T0);
-  ok28 = (pre((nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT) and (true -> pre(nextMoveMode = nMM_FWD)) and turnState = T0) => turnState = T1);
-  ok29 = (pre(turnState = T1) => (turnState = T2 and pre(nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT)));
-  ok30 = (pre(turnState = T2 and (nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT)) => turnState = T1);
-  ok31 = (pre(turnState = T2 and nextMoveMode = nMM_FWD) => turnState = T3);
-  ok32 = (pre(turnState = T3) => turnState = T0);
+  ok29 = (turnState = T0 => pre(turnState = T0 or turnState = T3));
+  ok30 = (pre(turnState = T0 and (not (nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT))) => turnState = T0);
+  ok31 = (pre((nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT) and (true -> pre(nextMoveMode = nMM_FWD)) and turnState = T0) => turnState = T1);
+  ok32 = (pre(turnState = T1) => (turnState = T2 and pre(nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT)));
+  ok33 = (pre(turnState = T2 and (nextMoveMode = nMM_TURN_RIGHT or nextMoveMode = nMM_TURN_LEFT)) => turnState = T1);
+  ok34 = (pre(turnState = T2 and nextMoveMode = nMM_FWD) => turnState = T3);
+  ok35 = (pre(turnState = T3) => turnState = T0);
 
 
   --movement - turning
-  ok33 = ((pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_RIGHT)) => (LeftMotor = CALIB_TURN_RIGHT and RightMotor = CALIB_TURN_RIGHT));
-  ok34 = ((LeftMotor = CALIB_TURN_RIGHT and RightMotor = CALIB_TURN_RIGHT) => (pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_RIGHT)));
+  ok36 = ((pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_RIGHT)) => (LeftMotor = CALIB_TURN_RIGHT and RightMotor = CALIB_TURN_RIGHT));
+  ok37 = ((LeftMotor = CALIB_TURN_RIGHT and RightMotor = CALIB_TURN_RIGHT) => (pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_RIGHT)));
 
-  ok35 = ((pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_LEFT)) => (LeftMotor = CALIB_TURN_LEFT and RightMotor = CALIB_TURN_LEFT));
-  ok36 = ((LeftMotor = CALIB_TURN_LEFT and RightMotor = CALIB_TURN_LEFT) => (pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_LEFT)));
+  ok38 = ((pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_LEFT)) => (LeftMotor = CALIB_TURN_LEFT and RightMotor = CALIB_TURN_LEFT));
+  ok39 = ((LeftMotor = CALIB_TURN_LEFT and RightMotor = CALIB_TURN_LEFT) => (pre(turnState = T0) and turnState = T1 and pre(nextMoveMode = nMM_TURN_LEFT)));
 
-  ok37 = ((turnState = T2) => pre(LeftMotor = FWD and RightMotor = TURN_FWD));
-  ok38 = (pre(LeftMotor = FWD and RightMotor = TURN_FWD) => (turnState = T2));
+  ok40 = ((turnState = T2) => pre(LeftMotor = FWD and RightMotor = TURN_FWD));
+  ok41 = (pre(LeftMotor = FWD and RightMotor = TURN_FWD) => (turnState = T2));
 
-  ok39 = ((turnState = T2) => (LeftMotor = BWD and RightMotor = TURN_BWD));
-  ok40 = ((LeftMotor = BWD and RightMotor = TURN_BWD) => (turnState = T2));
+  ok42 = ((turnState = T2) => (LeftMotor = BWD and RightMotor = TURN_BWD));
+  ok43 = ((LeftMotor = BWD and RightMotor = TURN_BWD) => (turnState = T2));
 
-  ok41 = ((pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_RIGHT)))) => pre(LeftMotor = CALIB_FWD_RIGHT and RightMotor = CALIB_FWD_RIGHT));
-  ok42 = (pre(LeftMotor = CALIB_FWD_RIGHT and RightMotor = CALIB_FWD_RIGHT) => (pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_RIGHT)))));
+  ok44 = ((pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_RIGHT)))) => pre(LeftMotor = CALIB_FWD_RIGHT and RightMotor = CALIB_FWD_RIGHT));
+  ok45 = (pre(LeftMotor = CALIB_FWD_RIGHT and RightMotor = CALIB_FWD_RIGHT) => (pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_RIGHT)))));
 
-  ok43 = ((pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_LEFT)))) => pre(LeftMotor = CALIB_FWD_LEFT and RightMotor = CALIB_FWD_LEFT));
-  ok44 = (pre(LeftMotor = CALIB_FWD_LEFT and RightMotor = CALIB_FWD_LEFT) => (pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_LEFT)))));
+  ok46 = ((pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_LEFT)))) => pre(LeftMotor = CALIB_FWD_LEFT and RightMotor = CALIB_FWD_LEFT));
+  ok47 = (pre(LeftMotor = CALIB_FWD_LEFT and RightMotor = CALIB_FWD_LEFT) => (pre(turnState = T3) and turnState = T0 and pre(true -> pre(true -> pre(nextMoveMode = nMM_TURN_LEFT)))));
 
 
   --environment - assumptions
-  assert ((true -> pre(nextMoveMode = nMM_FWD)) and pre(Obstacle = BLOCKED)) => Obstacle = BLOCKED;
-  assert ((true -> pre(nextMoveMode = nMM_BWD)) and pre(Obstacle = CLEAR)) => Obstacle <> BLOCKED;
+  assert pre((true -> pre(nextMoveMode = nMM_FWD)) and (Obstacle = BLOCKED)) => Obstacle = BLOCKED;
+  assert pre((true -> pre(nextMoveMode = nMM_BWD)) and (Obstacle = CLEAR)) => Obstacle <> BLOCKED;
   --assert respondsTo((turnState = T1), (pre(Obstacle = CLEAR) and (Obstacle = CLEAR)));
 
-  responded1 = true -> (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (turnState = T1))));
+  assert Initially(responded1);
+  assert responded1 => (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (turnState = T1))));
+  assert (pre((true -> (pre(Obstacle = CLEAR) and (Obstacle = CLEAR))) or responded1 and (not (turnState = T1)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
   assert pre(turnState = T2 and Obstacle = CLEAR) => Obstacle = CLEAR;
   --assert respondsTo((nextMoveMode = nMM_TURN_RIGHT), ((Heading = nextHead) or (nextMoveMode <> nMM_TURN_RIGHT)));
 
-  responded2 = true -> (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_RIGHT) or responded2 and (not (nextMoveMode = nMM_TURN_RIGHT))));
+  assert Initially(responded2);
+  assert responded2 => (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_RIGHT) or responded2 and (not (nextMoveMode = nMM_TURN_RIGHT))));
+  assert (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_RIGHT) or responded2 and (not (nextMoveMode = nMM_TURN_RIGHT)))) => responded2;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
-
   assert counter_r2 < K;
 
   --assert respondsTo((nextMoveMode = nMM_TURN_LEFT), (Heading = nextHead or nextMoveMode <> nMM_TURN_LEFT));
 
-  responded3 = true -> (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_LEFT) or responded3 and (not (nextMoveMode = nMM_TURN_LEFT))));
+  assert Initially(responded3);
+  assert responded3 => (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_LEFT) or responded3 and (not (nextMoveMode = nMM_TURN_LEFT))));
+  assert (pre((Heading = nextHead or nextMoveMode <> nMM_TURN_LEFT) or responded3 and (not (nextMoveMode = nMM_TURN_LEFT)))) => responded3;
 
   counter_r3 = 0.0 -> if (responded3) then 0.0 else pre(counter_r3) + 1.0;
-
   assert counter_r3 < K;
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9 and ok10 and ok11 and ok12 and ok13 and ok14 and ok15 and ok16 and ok17 and ok18 and ok19 and ok20 and ok21 and ok22 and ok23 and ok24 and ok25 and ok26 and ok27 and ok28 and ok29 and ok30 and ok31 and ok32 and ok33 and ok34 and ok35 and ok36;
@@ -190,6 +198,9 @@ let
   --%PROPERTY ok42;
   --%PROPERTY ok43;
   --%PROPERTY ok44;
+  --%PROPERTY ok45;
+  --%PROPERTY ok46;
+  --%PROPERTY ok47;
 
   --%REALIZABLE Obstacle, Noise, Heading, Button;
 tel;

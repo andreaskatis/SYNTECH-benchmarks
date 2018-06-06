@@ -18,9 +18,9 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node GyroAspect(distSense : env_distSense; isReady : bool; bluetoothCmd : env_bluetoothCmd; balancer : sys_balancer) returns ();
+node GyroAspect(distSense : env_distSense; isReady : bool; bluetoothCmd : env_bluetoothCmd; balancer : sys_balancer; responded1 : bool) returns ();
 var
-  counter_gf1, counter_gf2 : real;
+  counter_r1, counter_gf1, counter_gf2 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12 : bool;
 let
 
@@ -40,10 +40,16 @@ let
   ok11 = (bluetoothCmd = bC_TURN_LEFT) => (isReady => balancer = TURN_LEFT);
   ok12 = (bluetoothCmd = NOP) => (isReady => balancer = STP);
 
-  assert respondsTo((not (balancer = FWD or balancer = STP)), (distSense = CLEAR));
+  assert Initially(responded1);
+  assert pre(distSense = CLEAR or responded1 and (not (not (balancer = FWD or balancer = STP)))) => responded1;
+  assert responded1 => pre(distSense = CLEAR or responded1 and (not (not (balancer = FWD or balancer = STP))));
+  counter_r1 = 0.0 -> if responded1 then 0.0 else pre(counter_r1) + 1.0;
+  assert counter_r1 < K;
+
+  --assert respondsTo((not (balancer = FWD or balancer = STP)), (distSense = CLEAR));
   counter_gf2 = 0.0 -> if isReady then 0.0 else pre(counter_gf2) + 1.0;
   assert counter_gf2 < K;
-  assert true -> (pre(isReady) => isReady);
+  assert (pre(isReady) => isReady);
   assert Initially(not isReady);
   assert Initially(bluetoothCmd = AUTO);
 

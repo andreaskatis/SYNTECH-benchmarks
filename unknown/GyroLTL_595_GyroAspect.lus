@@ -1,4 +1,4 @@
-const K = 5.0;
+const K = 2.0;
 type env_frontDistSense = enum {CLEAR, BLOCKED};
 type env_bluetoothCmd = enum {AUTO, bC_STP, bC_FWD, bC_BWD, bC_TURN_LEFT, bC_TURN_RIGHT};
 type sys_balancer = enum {STP, FWD, BWD, TURN_LEFT, TURN_RIGHT};

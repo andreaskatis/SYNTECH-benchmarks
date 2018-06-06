@@ -20,9 +20,9 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node GyroAspect(distSense : env_distSense; isReady : bool; bluetoothCmd : env_bluetoothCmd; balancerStatus : env_balancerStatus; balancer : sys_balancer; bluetoothStatus : sys_bluetoothStatus) returns ();
+node GyroAspect(distSense : env_distSense; isReady : bool; bluetoothCmd : env_bluetoothCmd; balancerStatus : env_balancerStatus; balancer : sys_balancer; bluetoothStatus : sys_bluetoothStatus; responded1, responded2 : bool) returns ();
 var
-  counter_gf1, counter_gf2, counter_gf3 : real;
+  counter_r1, counter_r2, counter_gf1, counter_gf2, counter_gf3 : real;
   ok1, ok2, ok3, ok4, ok5, ok6 : bool;
   moveAwayFromObstacle : bool;
 let
@@ -42,7 +42,12 @@ let
 
   moveAwayFromObstacle = not(balancer = FWD or balancer = STP);
 
-  assert respondsTo(moveAwayFromObstacle, ((not moveAwayFromObstacle) or distSense = CLEAR));
+  assert Initially(responded1);
+  assert pre(((not moveAwayFromObstacle) or distSense = CLEAR) or responded1 and (not moveAwayFromObstacle)) => responded1;
+  assert responded1 => pre(((not moveAwayFromObstacle) or distSense = CLEAR) or responded1 and (not moveAwayFromObstacle));
+  counter_r1 = 0.0 -> if responded1 then 0.0 else pre(counter_r1) + 1.0;
+  assert counter_r1 < K;
+  --assert respondsTo(moveAwayFromObstacle, ((not moveAwayFromObstacle) or distSense = CLEAR));
 
   counter_gf3 = 0.0 -> if isReady then 0.0 else pre(counter_gf2) + 1.0;
   assert counter_gf3 < K;
@@ -54,7 +59,12 @@ let
 
   assert true -> (pre(distSense = BLOCKED and (balancer = STP or balancer = FWD)) => (distSense = BLOCKED));
 
-  assert respondsTo((balancer = FWD), (balancer <> FWD or distSense = BLOCKED));
+  assert Initially(responded2);
+  assert pre((balancer <> FWD or distSense = BLOCKED) or responded2 and (not (balancer = FWD))) => responded2;
+  assert responded2 => pre((balancer <> FWD or distSense = BLOCKED) or responded2 and (not (balancer = FWD)));
+  counter_r2 = 0.0 -> if responded2 then 0.0 else pre(counter_r2) + 1.0;
+  assert counter_r2 < K;
+  --assert respondsTo((balancer = FWD), (balancer <> FWD or distSense = BLOCKED));
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6;
 

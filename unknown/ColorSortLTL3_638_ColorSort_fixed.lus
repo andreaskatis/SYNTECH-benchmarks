@@ -1,4 +1,4 @@
-const K = 1.0;
+const K = 2.0;
 
 type env_color = enum {RED, GREEN, BLUE, BLACK, YELLOW, WHITE};
 type env_ack_ver = enum {MOVE, SLEEP};
@@ -24,14 +24,11 @@ let
   o = i -> true;
 tel;
 
-node ColorSort(color : env_color; detect : env_color; ack_ver, ack_hor, ack_bot : env_ack_ver; speedButton : env_speedButton; verMot, horMot : env_ack_ver; botMot : sys_botMot; motSpeed : sys_motSpeed; spec_currentColor : env_color; spec_state_1, spec_state_2 : sys_spec_state; spec_speedButtonValidPressed : bool) returns ();
+node ColorSort(color : env_color; detect : env_color; ack_ver, ack_hor, ack_bot : env_ack_ver; speedButton : env_speedButton; verMot, horMot : env_ack_ver; botMot : sys_botMot; motSpeed : sys_motSpeed; spec_currentColor : env_color; spec_state_1, spec_state_2 : sys_spec_state; spec_speedButtonValidPressed : bool; respondedg1, responded1, responded2, responded3 : bool) returns ();
 var
-  respondedg1, responded1,responded2,responded3 : bool;
   counter_gr1, counter_r1, counter_r2, counter_r3 : real;
   counter_gf1, counter_gf2 : real;
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14,
-  --ok15,
-   ok16 : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19 : bool;
   spec_allsleep, spec_nonemove : bool;
 let
   spec_allsleep = (verMot = SLEEP and horMot = SLEEP and botMot = STOP);
@@ -66,23 +63,33 @@ let
 
   ok14 = ((not spec_speedButtonValidPressed and pre(motSpeed = LEVEL3))) => motSpeed = LEVEL3;
 
-  respondedg1 = true -> pre((detect = spec_currentColor and horMot = MOVE) or respondedg1 and (not (color <> BLACK)));
+  ok15 = Initially(respondedg1);
+  ok16 = respondedg1 => pre((detect = spec_currentColor and horMot = MOVE) or respondedg1 and (not (color <> BLACK)));
+  ok17 = pre((detect = spec_currentColor and horMot = MOVE) or respondedg1 and (not (color <> BLACK))) => respondedg1;
+
+  --respondedg1 = true -> pre((detect = spec_currentColor and horMot = MOVE) or respondedg1 and (not (color <> BLACK)));
   counter_gr1 = 0.0 -> if (respondedg1) then 0.0 else pre(counter_gr1) + 1.0;
 
-  --ok15 = counter_gr1 < K;
+  ok18 = counter_gr1 < K;
 
   counter_gf1 = 0.0 -> if (horMot = MOVE) then 0.0 else pre(counter_gf1) + 1.0;
-  ok16 = counter_gf1 < K;
+  ok19 = counter_gf1 < K;
 
   --assert respondsTo(ack_ver = MOVE, (ack_ver = SLEEP));
   --assert respondsTo(ack_hor = MOVE, (ack_hor = SLEEP));
   --assert respondsTo(ack_bot = MOVE, (ack_bot = SLEEP));
 
-  responded1 = true -> (pre((ack_ver = SLEEP) or responded1 and (not (ack_ver = MOVE))));
+  assert Initially(responded1);
+  assert responded1 => (pre((ack_ver = SLEEP) or responded1 and (not (ack_ver = MOVE))));
+  assert (pre((ack_ver = SLEEP) or responded1 and (not (ack_ver = MOVE)))) => responded1;
 
-  responded2 = true -> (pre((ack_hor = SLEEP) or responded2 and (not (ack_hor = MOVE))));
+  assert Initially(responded2);
+  assert responded2 => (pre((ack_hor = SLEEP) or responded2 and (not (ack_hor = MOVE))));
+  assert (pre((ack_hor = SLEEP) or responded2 and (not (ack_hor = MOVE)))) => responded2;
 
-  responded3 = true -> (pre((ack_bot = SLEEP) or responded3 and (not (ack_bot = MOVE))));
+  assert Initially(responded3);
+  assert responded3 => (pre((ack_bot = SLEEP) or responded3 and (not (ack_bot = MOVE))));
+  assert (pre((ack_bot = SLEEP) or responded3 and (not (ack_bot = MOVE)))) => responded3;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
@@ -111,8 +118,11 @@ let
   --%PROPERTY ok12;
   --%PROPERTY ok13;
   --%PROPERTY ok14;
-  --PROPERTY ok15;
+  --%PROPERTY ok15;
   --%PROPERTY ok16;
+  --%PROPERTY ok17;
+  --%PROPERTY ok18;
+  --%PROPERTY ok19;
 
   --%REALIZABLE color, detect, ack_ver, ack_hor, ack_bot, speedButton;
 tel;

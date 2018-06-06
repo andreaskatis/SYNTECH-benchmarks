@@ -29,9 +29,8 @@ let
   o = i -> true;
 tel;
 
-node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; colorSense : env_colorSense; reset : env_reset; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; policy : sys_policy) returns ();
+node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; colorSense : env_colorSense; reset : env_reset; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; policy : sys_policy; responded1 : bool) returns ();
 var
-  responded1 : bool;
   counter_r1, counter_gf1, counter_gf2, counter_gf3 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28, ok29, ok30, ok31, ok32, ok33, ok34, ok35, ok36, ok37, ok38, ok39, ok40 : bool;
 let
@@ -91,20 +90,21 @@ let
   ok40 = pre(policy = EXIT_1) => (policy = SEEKING and pre(steer = CENTER and throttle = STOP));
 
   --env assumptions
-  assert true -> (pre(policy = SEEKING) => parkResult = NA);
+  assert (pre(policy = SEEKING) => parkResult = NA);
   counter_gf2 = 0.0 -> if (policy = MEASURING and parkResult = PARALLEL and obstacle = CLEAR) then 0.0 else pre(counter_gf2) + 1.0;
   assert counter_gf2 < K;
   assert parkResult = NA and reset = FREE;
   --assert respondsTo((throttle = BWD), (obstacle = CLEAR));
 
-  responded1 = true -> (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD))));
+  assert Initially(responded1);
+  assert responded1 => (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD))));
+  assert (pre((obstacle = CLEAR) or responded1 and (not (throttle = BWD)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
-  assert true -> (pre(throttle = STOP) => ((obstacle = pre(obstacle)) and (sideSense = pre(sideSense))));
-  assert true -> (pre(policy <> PARKED) => colorSense = BLACK);
+  assert (pre(throttle = STOP) => ((obstacle = pre(obstacle)) and (sideSense = pre(sideSense))));
+  assert (pre(policy <> PARKED) => colorSense = BLACK);
   counter_gf3 = 0.0 -> if (policy = PARKED and colorSense = GREEN and reset = FREE) then 0.0 else pre(counter_gf3) + 1.0;
   assert counter_gf3 < K;
 

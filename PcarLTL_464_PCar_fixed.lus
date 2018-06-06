@@ -26,13 +26,20 @@ let
   o = i -> true;
 tel;
 
-node PCar(obstacle : env_obstacle; sideSense : env_sideSense; throttle : sys_throttle; steer : sys_steer; spec_b2f : sys_spec_b2f; spec_f2b : sys_spec_b2f) returns ();
+node PCar(obstacle : env_obstacle; sideSense : env_sideSense; throttle : sys_throttle; steer : sys_steer; spec_b2f : sys_spec_b2f; spec_f2b : sys_spec_b2f; responded1, responded2 : bool) returns ();
 var
-  counter_gf1, counter_gf2, counter_gf3 : real;
+  counter_r1, counter_r2, counter_gf1, counter_gf2, counter_gf3 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7 : bool;
 let
 
-  assert respondsTo(((throttle = FWD) and (steer = CENTER) and (sideSense = IS_BLOCKED)),(sideSense=IS_CLEAR));
+  assert Initially(responded1);
+  assert pre(sideSense = IS_CLEAR or responded1 and (not (throttle = FWD and steer = CENTER and sideSense = IS_BLOCKED))) => responded1;
+  assert responded1 => pre(sideSense = IS_CLEAR or responded1 and (not (throttle = FWD and steer = CENTER and sideSense = IS_BLOCKED)));
+  counter_r1 = 0.0 -> if responded1 then 0.0 else pre(counter_r1) + 1.0;
+  assert counter_r1 < K;
+
+  --assert respondsTo(((throttle = FWD) and (steer = CENTER) and (sideSense = IS_BLOCKED)),(sideSense=IS_CLEAR));
+
   assert true -> (pre(throttle) = BWD => obstacle = CLEAR);
 
   counter_gf1 = 0.0 -> if (throttle = FWD and steer = CENTER) then 0.0 else pre(counter_gf1) + 1.0;
@@ -41,7 +48,14 @@ let
   ok2 = ((obstacle = CLEAR) and (sideSense = IS_CLEAR)) => steer = CENTER;
   ok3 = counter_gf1 < K;
 
-  assert respondsTo((throttle = BWD), (obstacle = CLEAR));
+  assert Initially(responded2);
+  assert pre(obstacle = CLEAR or responded2 and (not (throttle = BWD))) => responded2;
+  assert responded2 => pre(obstacle = CLEAR or responded2 and (not (throttle = BWD)));
+  counter_r2 = 0.0 -> if responded2 then 0.0 else pre(counter_r2) + 1.0;
+  assert counter_r2 < K;
+
+  --assert respondsTo((throttle = BWD), (obstacle = CLEAR));
+
   ok4 = Initially((spec_b2f = S0));
   ok5 = ((pre(spec_b2f = S0 and (((not (throttle = BWD)) and (not (throttle = STOP))) or (throttle = BWD and throttle = FWD) or ((not (throttle = FWD)) and throttle = STOP) or ((not (throttle = BWD)) and throttle = FWD and throttle = STOP))) and (spec_b2f = S0)) or
   (pre(spec_b2f = S0 and (throttle = BWD and (not (throttle = FWD)) and (not (throttle = STOP)))) and spec_b2f = S1) or

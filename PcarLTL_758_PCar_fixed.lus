@@ -27,9 +27,9 @@ let
   o = i -> true;
 tel;
 
-node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; spec_park : bool; spec_policy : sys_spec_policy) returns ();
+node PCar(obstacle : env_obstacle; sideSense : env_sideSense; parkResult : env_parkResult; throttle : sys_throttle; steer : sys_steer; parkCommand : sys_parkCommand; spec_park : bool; spec_policy : sys_spec_policy; responded1, responded2 : bool) returns ();
 var
-  counter_gf1 : real;
+  counter_gf1, counter_r1, counter_r2 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18 : bool;
 let
 
@@ -61,9 +61,21 @@ let
   ok17 = obstacle = BLOCKED => parkCommand = pSTOP;
   ok18 = spec_policy = SEEKING => (throttle <> STOP);
 
-  assert respondsTo((throttle = BWD), (obstacle = CLEAR));
+  assert Initially(responded1);
+  assert pre(obstacle = CLEAR or responded1 and (not (throttle = BWD))) => responded1;
+  assert responded1 => pre(obstacle = CLEAR or responded1 and (not (throttle = BWD)));
+  counter_r1 = 0.0 -> if responded1 then 0.0 else pre(counter_r1) + 1.0;
+  assert counter_r1 < K;
+  --assert respondsTo((throttle = BWD), (obstacle = CLEAR));
+
   assert pre(throttle = STOP) => ((pre(obstacle) = obstacle) and (pre(sideSense) = sideSense));
-  assert respondsTo((spec_policy = SEEKING and throttle = FWD), (spec_policy = PARKING_0));
+
+  assert Initially(responded2);
+  assert pre(spec_policy = PARKING_0 or responded2 and (not (spec_policy = SEEKING and throttle = FWD))) => responded2;
+  assert responded2 => pre(spec_policy = PARKING_0 or responded2 and (not (spec_policy = SEEKING and throttle = FWD)));
+  counter_r2 = 0.0 -> if responded2 then 0.0 else pre(counter_r2) + 1.0;
+  assert counter_r2 < K;
+  --assert respondsTo((spec_policy = SEEKING and throttle = FWD), (spec_policy = PARKING_0));
   assert Initially(parkResult = NA);
 
   --ok = ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7 and ok8 and ok9 and ok10 and ok11 and ok12 and ok13 and ok14 and ok15 and ok16 and ok17 and ok18;

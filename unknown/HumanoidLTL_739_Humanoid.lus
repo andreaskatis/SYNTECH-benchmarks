@@ -28,9 +28,8 @@ let
   ok = true -> ((responded => pre(response or responded and (not trigger))) and (pre(response or responded and (not trigger)) => responded) and counter_gf < K);
 tel;
 
-node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_RightMotor; HeadMotor : sys_HeadMotor; spec_nextMoveMode : sys_spec_nextMoveMode; spec_state : sys_spec_state; search : sys_search; next_head : env_Heading) returns ();
+node Humanoid(Obstacle : env_Obstacle; Noise : env_Noise; Heading : env_Heading; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_RightMotor; HeadMotor : sys_HeadMotor; spec_nextMoveMode : sys_spec_nextMoveMode; spec_state : sys_spec_state; search : sys_search; next_head : env_Heading; responded1, responded2 : bool) returns ();
 var
-  responded1, responded2 : bool;
   counter_r1, counter_r2, counter_gf1, counter_gf2, counter_gf3 : real;
   ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17, ok18, ok19, ok20, ok21, ok22, ok23, ok24, ok25, ok26, ok27, ok28 : bool;
 let
@@ -81,19 +80,21 @@ let
 
   --assert respondsTo((search = M1), (Heading = next_head));
 
-  responded1 = true -> (pre((Heading = next_head) or responded1 and (not (search = M1))));
+  assert Initially(responded1);
+  assert responded1 => (pre((Heading = next_head) or responded1 and (not (search = M1))));
+  assert (pre((Heading = next_head) or responded1 and (not (search = M1)))) => responded1;
 
   counter_r1 = 0.0 -> if (responded1) then 0.0 else pre(counter_r1) + 1.0;
-
   assert counter_r1 < K;
 
   assert pre((spec_nextMoveMode = snMM_FWD or spec_nextMoveMode = snMM_BWD) and Heading <> next_head) => Heading <> pre(next_head);
   --assert respondsTo((spec_nextMoveMode <> snMM_FWD), (Obstacle = CLEAR));
 
-  responded2 = true -> (pre((Obstacle = CLEAR) or responded2 and (not (spec_nextMoveMode <> snMM_FWD))));
+  assert Initially(responded2);
+  assert responded2 => (pre((Obstacle = CLEAR) or responded2 and (not (spec_nextMoveMode <> snMM_FWD))));
+  assert (pre((Obstacle = CLEAR) or responded2 and (not (spec_nextMoveMode <> snMM_FWD)))) => responded2;
 
   counter_r2 = 0.0 -> if (responded2) then 0.0 else pre(counter_r2) + 1.0;
-
   assert counter_r2 < K;
 
   assert pre(spec_nextMoveMode = snMM_BWD and Obstacle = CLEAR) => Obstacle <> BLOCKED;

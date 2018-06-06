@@ -26,7 +26,7 @@ tel;
 
 node Humanoid(Obstacle : env_Obstacle; InputMoveMode : env_InputMoveMode; Button : env_Button; LeftMotor : sys_LeftMotor; RightMotor : sys_RightMotor; HeadMotor : sys_HeadMotor; OutputMoveMode : env_InputMoveMode) returns ();
 var
-  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16 : bool;
+  ok1, ok2, ok3, ok4, ok5, ok6, ok7, ok8, ok9, ok10, ok11, ok12, ok13, ok14, ok15, ok16, ok17 : bool;
 let
 
   ok1 = (InputMoveMode = FWD and Obstacle = BLOCKED) => (OutputMoveMode = TURN_LEFT_1 and LeftMotor = LM_CALIB_TURN and RightMotor = RM_CALIB_TURN);
@@ -36,21 +36,22 @@ let
   ok4 = (InputMoveMode = FWD and Obstacle = CLEAR and Button = FREE and pre(InputMoveMode <> TURN_LEFT_2)) => (LeftMotor = LM_FWD and RightMotor = RM_FWD);
   ok5 = (Obstacle = BLOCKED) => (not (OutputMoveMode = FWD));
 
-  ok6 = ((InputMoveMode = TURN_LEFT_1) => (OutputMoveMode = TURN_LEFT_2)) and ((OutputMoveMode = TURN_LEFT_2) => (InputMoveMode = TURN_LEFT_1));
-  ok7 = (InputMoveMode = TURN_LEFT_1) => (LeftMotor = LM_FWD and RightMotor = RM_TURN_FWD);
-  ok8 = (InputMoveMode = TURN_LEFT_2) => (LeftMotor = LM_BWD and RightMotor = RM_TURN_BWD);
-  ok9 = (not (InputMoveMode = TURN_LEFT_1 or InputMoveMode = TURN_LEFT_2) => (not (LeftMotor = LM_TURN_BWD or RightMotor = RM_TURN_BWD or (LeftMotor = LM_TURN_FWD and RightMotor = RM_TURN_FWD))));
-  ok10 = (InputMoveMode = TURN_LEFT_1 or InputMoveMode = TURN_LEFT_2) => (HeadMotor = HM_STOP);
-  ok11 = (InputMoveMode = TURN_LEFT_2 and Obstacle = CLEAR) => (OutputMoveMode = FWD);
+  ok6 = ((InputMoveMode = TURN_LEFT_1) => (OutputMoveMode = TURN_LEFT_2));
+  ok7 = ((OutputMoveMode = TURN_LEFT_2) => (InputMoveMode = TURN_LEFT_1));
+  ok8 = (InputMoveMode = TURN_LEFT_1) => (LeftMotor = LM_FWD and RightMotor = RM_TURN_FWD);
+  ok9 = (InputMoveMode = TURN_LEFT_2) => (LeftMotor = LM_BWD and RightMotor = RM_TURN_BWD);
+  ok10 = (not (InputMoveMode = TURN_LEFT_1 or InputMoveMode = TURN_LEFT_2) => (not (LeftMotor = LM_TURN_BWD or RightMotor = RM_TURN_BWD or (LeftMotor = LM_TURN_FWD and RightMotor = RM_TURN_FWD))));
+  ok11 = (InputMoveMode = TURN_LEFT_1 or InputMoveMode = TURN_LEFT_2) => (HeadMotor = HM_STOP);
+  ok12 = (InputMoveMode = TURN_LEFT_2 and Obstacle = CLEAR) => (OutputMoveMode = FWD);
 
-  ok12 = (InputMoveMode = DANCE and OutputMoveMode = DANCE) => (RightMotor = RM_STOP and LeftMotor = LM_DANCE and HeadMotor = HM_DANCE);
+  ok13 = (InputMoveMode = DANCE and OutputMoveMode = DANCE) => (RightMotor = RM_STOP and LeftMotor = LM_DANCE and HeadMotor = HM_DANCE);
 
 
   --ok13 = (Button = FREE) => ((OutputMoveMode = (if InputMoveMode = FWD then FWD else if InputMoveMode = BWD then BWD else if InputMoveMode = TURN_LEFT_1 then TURN_LEFT_1 else if InputMoveMode = TURN_LEFT_2 then TURN_LEFT_2 else DANCE)) or (InputMoveMode <> DANCE));
-  ok13 = (Button = FREE) => (OutputMoveMode = InputMoveMode or InputMoveMode <> DANCE);
-  ok14 = (Button = PRESSED and InputMoveMode = FWD and Obstacle = CLEAR) => (OutputMoveMode = DANCE and LeftMotor = LM_CALIB_TURN and RightMotor = RM_CALIB_TURN);
-  ok15 = (Button = PRESSED and InputMoveMode = DANCE and Obstacle = CLEAR) => (OutputMoveMode = FWD and LeftMotor = LM_CALIB_FWD and RightMotor = RM_CALIB_FWD);
-  ok16 = (not (Button = PRESSED or InputMoveMode = DANCE)) => (not (OutputMoveMode = DANCE));
+  ok14 = (Button = FREE) => (OutputMoveMode = InputMoveMode or InputMoveMode <> DANCE);
+  ok15 = (Button = PRESSED and InputMoveMode = FWD and Obstacle = CLEAR) => (OutputMoveMode = DANCE and LeftMotor = LM_CALIB_TURN and RightMotor = RM_CALIB_TURN);
+  ok16 = (Button = PRESSED and InputMoveMode = DANCE and Obstacle = CLEAR) => (OutputMoveMode = FWD and LeftMotor = LM_CALIB_FWD and RightMotor = RM_CALIB_FWD);
+  ok17 = (not (Button = PRESSED or InputMoveMode = DANCE)) => (not (OutputMoveMode = DANCE));
 
   assert (InputMoveMode = FWD and pre(InputMoveMode = TURN_LEFT_2)) => (Obstacle = CLEAR);
 
@@ -72,6 +73,7 @@ let
   --%PROPERTY ok14;
   --%PROPERTY ok15;
   --%PROPERTY ok16;
+  --%PROPERTY ok17;
 
   --%REALIZABLE Obstacle, InputMoveMode, Button;
 tel;
